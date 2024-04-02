@@ -1,55 +1,11 @@
-﻿Instructions, download all files to a single folder.
-
-You can then fire up the exe using the following command line to run it
-
-OvoData.exe -u your.login@yourdomain.co.uk -p yourPassword -f 01/01/2020 -t 04/02/2020 -o S:\Data\OvoData.csv
-
--u  Your OVO username that you use to log in to the web site or mobile app with.
--p  Your OVO password that you use to log in to the web site or mobile app with.
--o  The path and filename to write the results to
--f  The first date to retrieve 1/2 hourly data for
--t  The (inclusive) last date to retrieve 1/2 hourly data for
-
-
-Do NOT Put dates in the future.
-
-Enjoy!
-
-John Quinlan.
-
-For replicating this in other languages, the process seems to be as follows:
-
-Login by sending a POST request to https://my.ovoenergy.com/api/v2/auth/login with the following JSON in the body:
-{
-    "username": "...",
-    "password": "...",
-    "rememberMe": true
-}
-
-From the response, save the cookies to use in all future requests.
-Next, send a GET request to https://smartpaym.ovoenergy.com/api/customer-and-account-ids . Be sure to save the items in the "accountIds" property (usually only one item).
-Finally, make a GET request to https://smartpaym.ovoenergy.com/api/energy-usage/daily/{account_id}?date={yyyy-MM} where {account_id} is the value from the previous request and {yyyy-MM} is the month in the format 2020-08.
-
-You can also get monthly or half-hourly usage using the following URLs similar to step 3:
-
-https://smartpaym.ovoenergy.com/api/energy-usage/half-hourly/{account_id}?date={yyyy-MM-dd}
-https://smartpaym.ovoenergy.com/api/energy-usage/monthly/{account_id}?date={yyyy}
-
-Latest Source for Aidan Timson's (Timmo) python version
-https://github.com/timmo001/ovoenergy
-
-Scraped from Timmo's code
-https://my.ovoenergy.com/api/v2/auth/login
-https://smartpaym.ovoenergy.com/api/customer-and-account-ids
-https://smartpaymapi.ovoenergy.com/usage/api/monthly/{account_id}?date={yyyy}
-https://smartpaymapi.ovoenergy.com/usage/api/daily/{account_id}?date={yyyy-MM}
-https://smartpaymapi.ovoenergy.com/usage/api/half-hourly/{account_id}?date={yyyy-MM-dd}
-
-https://smartpaymapi.ovoenergy.com/orex/api/plans/{account_id}
-https://smartpaymapi.ovoenergy.com/carbon-api/{account_id}/footprint
-https://smartpaymapi.ovoenergy.com/carbon-bff/carbonintensity
-
 Scraped from OVO WebSite
+------------------------
+Logging in ...
+https://my.ovoenergy.com/api/v2/auth/token
+https://smartpaymapi.ovoenergy.com/first-login/api/bootstrap/v2/
+https://smartpaymapi.ovoenergy.com/first-login/api/migration/v1/{account_id}
+
+Data ...
 https://smartpaymapi.ovoenergy.com/orex/api/supply-points/account/{account_id}
 https://smartpaymapi.ovoenergy.com/rlc/rac-public-api/api/v5/supplypoints/gas/{mpxn}/meters/{msn}/readings?from=2014-12-01
 https://smartpaymapi.ovoenergy.com/rlc/rac-public-api/api/v5/supplypoints/electricity/{mpxn}/meters/{msn}/readings?from=2014-12-01
@@ -65,7 +21,17 @@ https://smartpaymapi.ovoenergy.com/carbon-bff/{account_id}/breakdown
 
 https://smartpaymapi.ovoenergy.com/api/v2/marketing?accountId={account_id}&jobType=Credit
 
-Logging in ...
-https://my.ovoenergy.com/api/v2/auth/token
-https://smartpaymapi.ovoenergy.com/first-login/api/bootstrap/v2/
-https://smartpaymapi.ovoenergy.com/first-login/api/migration/v1/{account_id}
+Latest Source for Aidan Timson's (Timmo) python version
+https://github.com/timmo001/ovoenergy
+
+Scraped from Timmo's code
+-------------------------
+https://my.ovoenergy.com/api/v2/auth/login
+https://smartpaym.ovoenergy.com/api/customer-and-account-ids
+https://smartpaymapi.ovoenergy.com/usage/api/monthly/{account_id}?date={yyyy}
+https://smartpaymapi.ovoenergy.com/usage/api/daily/{account_id}?date={yyyy-MM}
+https://smartpaymapi.ovoenergy.com/usage/api/half-hourly/{account_id}?date={yyyy-MM-dd}
+
+https://smartpaymapi.ovoenergy.com/orex/api/plans/{account_id}
+https://smartpaymapi.ovoenergy.com/carbon-api/{account_id}/footprint
+https://smartpaymapi.ovoenergy.com/carbon-bff/carbonintensity
