@@ -5,6 +5,14 @@ email, or any other method with the owners of this repository before making a ch
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
 
+You are welcome to edit, fork and create pull requests as you like.
+
+* If you make a change, make sure to refer to any issues that it fixes.
+* Make sure you have used linters and tested what you have added/changed works.
+* Any pull request will trigger workflows, which should all pass before merging.
+* I, and any other users I approve will be able to merge your changes so be patient.
+
+
 ## Pull Request Process
 
 1. Ensure any install or build dependencies are removed before the end of the layer when doing a 
