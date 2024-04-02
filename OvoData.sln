@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34024.191
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OvoData", "OvoData.csproj", "{F70194D5-1B4F-4F0F-9BF0-3B1BEDC45100}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F70194D5-1B4F-4F0F-9BF0-3B1BEDC45100}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F70194D5-1B4F-4F0F-9BF0-3B1BEDC45100}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F70194D5-1B4F-4F0F-9BF0-3B1BEDC45100}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F70194D5-1B4F-4F0F-9BF0-3B1BEDC45100}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A2DD1E4D-E987-4093-8D06-4286F1C5AC36}
+	EndGlobalSection
+EndGlobal
