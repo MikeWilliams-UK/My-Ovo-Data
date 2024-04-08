@@ -188,7 +188,7 @@ namespace OvoData
                     lastMonth = thisMonth;
                 }
 
-                SetStatusText($"Checking - Year {year}");
+                SetStatusText($"Checking Year {year}");
 
                 var monthly = HttpHelper.GetMonthlyUsage(_configuration, _selectedAccountId, year);
                 usages = monthly.Gas.Data.Count + monthly.Electricity.Data.Count;
