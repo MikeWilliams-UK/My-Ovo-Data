@@ -1,10 +1,4 @@
-Get energy usage data from OVO's API.
-
-# Disclaimer
-
-THIS IS NOT AN OFFICIAL OVO ENERGY APPLICATION OR LIBRARY.
-
-I have no affiliation with the company. I am a private individual providing this code in the hope that it will be useful. I also recommend that you use their official portal to check your energy consumption. Use this code and this application at your own risk.
+Get your energy usage data from OVO via it's API.
 
 If you like my work, please consider donating at https://www.buymeacoffee.com/mikewilliamsuk
 
@@ -28,3 +22,9 @@ On subsequent occasions you will need to select the appropriate time period,  th
 To Export your data in either CSV or Excel format use the "Export" button.
 
 All data is stored in the folder C:\ProgramData\OvoData.
+
+# Disclaimer
+
+THIS IS NOT AN OFFICIAL OVO ENERGY APPLICATION OR LIBRARY.
+
+I have no affiliation with the company. I am a private individual providing this code in the hope that it will be useful. I also recommend that you use their official portal to check your energy consumption. Use this code and this application at your own risk.
