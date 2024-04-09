@@ -12,11 +12,14 @@ If you like my work, please consider donating at https://www.buymeacoffee.com/mi
 
 When the application is first run you will see this screen.
 Enter your details, then click on the Login button.
-<img src="Assets/Your OVO SMART meter data LogIn.png" width=200 height=200>
+
+<img src="Assets/Your OVO SMART meter data LogIn.png">
 
 Once logged in you will be able to select which of your accounts that you wish to obtain data for.
+
 The screen will also show the date range for which data is stored in the SQLite database.
-<img src="Assets/Your OVO SMART meter data Logged In.png" width=200 height=200>
+
+<img src="Assets/Your OVO SMART meter data Logged In.png">
 
 The first time that you use the application on an account it is recomended to select "All Time" then click on the "Read" button.
 
