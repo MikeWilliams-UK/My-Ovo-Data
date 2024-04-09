@@ -9,6 +9,7 @@
         <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
         <ApplicationIcon>Ovo.ico</ApplicationIcon>
         <AssemblyVersion>1.0.1</AssemblyVersion>
+        <FileVersion>1.0.1.1</FileVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
