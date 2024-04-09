@@ -376,7 +376,7 @@ namespace OvoData
 
         public void SetStatusText(string message)
         {
-            Debug.WriteLine(message);
+            Logger.WriteLine(message);
             Status.Text = message;
             DoWpfEvents();
         }

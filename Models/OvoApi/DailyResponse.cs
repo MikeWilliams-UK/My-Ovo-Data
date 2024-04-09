@@ -2,6 +2,6 @@
 
 public class DailyResponse
 {
-    public DailyUtility Electricity { get; set; }
-    public DailyUtility Gas { get; set; }
+    public DailyUtility Electricity { get; set; } = new DailyUtility();
+    public DailyUtility Gas { get; set; } = new DailyUtility();
 }

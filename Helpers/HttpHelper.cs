@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using Microsoft.Extensions.Configuration;
 using OvoData.Models.OvoApi;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace OvoData.Helpers;
 
@@ -14,12 +16,13 @@ public static class HttpHelper
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
-        WriteIndented = true
+        WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
     public static bool Login(IConfigurationRoot config, LoginRequest loginRequest)
     {
-        var result = false;
+        bool result;
 
         var request = new HttpRequestMessage(HttpMethod.Post, config["LoginUri"]);
 
@@ -43,13 +46,24 @@ public static class HttpHelper
     {
         var result = new AccountsResponse();
 
-        var request = new HttpRequestMessage(HttpMethod.Get, config["AccountsUri"]);
-
-        var response = _httpClient.SendAsync(request).Result;
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var content = response.Content.ReadAsStringAsync().Result;
-            result = JsonSerializer.Deserialize<AccountsResponse>(content, _options);
+            var uri = config["AccountsUri"];
+            Logger.WriteLine($"Uri: {uri}");
+
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            var response = _httpClient.SendAsync(request).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                var content = response.Content.ReadAsStringAsync().Result;
+                result = JsonSerializer.Deserialize<AccountsResponse>(content, _options);
+            }
+
+        }
+        catch (Exception exception)
+        {
+            Logger.WriteLine(exception.ToString());
         }
 
         return result;
@@ -59,13 +73,23 @@ public static class HttpHelper
     {
         var result = new MonthlyResponse();
 
-        var request = new HttpRequestMessage(HttpMethod.Get, string.Format(config["MonthlyUri"], accountId, year));
-
-        var response = _httpClient.SendAsync(request).Result;
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var content = response.Content.ReadAsStringAsync().Result;
-            result = JsonSerializer.Deserialize<MonthlyResponse>(content, _options);
+            var uri = string.Format(config["MonthlyUri"], accountId, year);
+            Logger.WriteLine($"Uri: {uri}");
+
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            var response = _httpClient.SendAsync(request).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                var content = response.Content.ReadAsStringAsync().Result;
+                result = JsonSerializer.Deserialize<MonthlyResponse>(content, _options);
+            }
+        }
+        catch (Exception exception)
+        {
+            Logger.WriteLine(exception.ToString());
         }
 
         return result;
@@ -75,13 +99,24 @@ public static class HttpHelper
     {
         var result = new DailyResponse();
 
-        var request = new HttpRequestMessage(HttpMethod.Get, string.Format(config["DailyUri"], accountId, $"{year}-{month:D2}"));
-
-        var response = _httpClient.SendAsync(request).Result;
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var content = response.Content.ReadAsStringAsync().Result;
-            result = JsonSerializer.Deserialize<DailyResponse>(content, _options);
+            var uri = string.Format(config["DailyUri"], accountId, $"{year}-{month:D2}");
+            Logger.WriteLine($"Uri: {uri}");
+
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            var response = _httpClient.SendAsync(request).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                var content = response.Content.ReadAsStringAsync().Result;
+                result = JsonSerializer.Deserialize<DailyResponse>(content, _options);
+            }
+
+        }
+        catch (Exception exception)
+        {
+            Logger.WriteLine(exception.ToString());
         }
 
         return result;
@@ -91,13 +126,23 @@ public static class HttpHelper
     {
         var result = new HalfHourlyResponse();
 
-        var request = new HttpRequestMessage(HttpMethod.Get, string.Format(config["HalfHourlyUri"], accountId, $"{year}-{month:D2}-{day:D2}"));
-
-        var response = _httpClient.SendAsync(request).Result;
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var content = response.Content.ReadAsStringAsync().Result;
-            result = JsonSerializer.Deserialize<HalfHourlyResponse>(content, _options);
+            var uri = string.Format(config["HalfHourlyUri"], accountId, $"{year}-{month:D2}-{day:D2}");
+            Logger.WriteLine($"Uri: {uri}");
+
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            var response = _httpClient.SendAsync(request).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                var content = response.Content.ReadAsStringAsync().Result;
+                result = JsonSerializer.Deserialize<HalfHourlyResponse>(content, _options);
+            }
+        }
+        catch (Exception exception)
+        {
+            Logger.WriteLine(exception.ToString());
         }
 
         return result;

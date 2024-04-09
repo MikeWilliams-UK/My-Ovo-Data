@@ -3,7 +3,6 @@ using OvoData.Models.OvoApi;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -94,7 +93,7 @@ public class SqliteHelper
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             result = Convert.ToInt32(command.ExecuteScalar());
 
-            Debug.WriteLine($"  Monthly{fuelType} has {result} records like '{year}%'");
+            Logger.WriteLine($"  Table Monthly{fuelType} has {result} records like '{year}%'");
         }
 
         return result;
@@ -174,7 +173,7 @@ public class SqliteHelper
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             result = Convert.ToInt32(command.ExecuteScalar());
 
-            Debug.WriteLine($"  Daily{type} has {result} records like '{year}-{month:D2}%'");
+            Logger.WriteLine($"  Table Daily{type} has {result} records like '{year}-{month:D2}%'");
         }
 
         return result;
@@ -261,7 +260,7 @@ public class SqliteHelper
             result = Convert.ToBoolean(command.ExecuteScalar());
         }
 
-        Debug.WriteLine($"  Daily{type} Half Hour records for '{year}-{month:D2}-{day:D2}' are available {result}");
+        Logger.WriteLine($"  Daily{type} Half Hour records for '{year}-{month:D2}-{day:D2}' are available {result}");
         return result;
     }
 
@@ -280,7 +279,7 @@ public class SqliteHelper
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             result = Convert.ToInt32(command.ExecuteScalar());
 
-            Debug.WriteLine($"  Daily{type} has {result} records like '{year}-{month:D2}-{day:D2}%'");
+            Logger.WriteLine($"  Table Daily{type} has {result} records like '{year}-{month:D2}-{day:D2}%'");
         }
 
         return result;
@@ -348,12 +347,12 @@ public class SqliteHelper
 
     private string FieldAsString(object field)
     {
-        return field as string;
+        return $"{field}";
     }
 
     private double FieldAsDouble(object field)
     {
-        var temp = field.ToString();
+        var temp = $"{field}";
         if (string.IsNullOrEmpty(temp))
         {
             return 0;

@@ -8,6 +8,7 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
         <ApplicationIcon>Ovo.ico</ApplicationIcon>
+        <AssemblyVersion>1.0.1</AssemblyVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
