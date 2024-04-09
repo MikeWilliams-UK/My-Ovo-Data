@@ -1,4 +1,4 @@
-Get energy data from OVO's API.
+Get energy usage data from OVO's API.
 
 # Disclaimer
 
