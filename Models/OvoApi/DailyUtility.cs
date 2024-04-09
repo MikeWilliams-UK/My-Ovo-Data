@@ -4,7 +4,7 @@ namespace OvoData.Models.OvoApi;
 
 public class DailyUtility
 {
-    public List<DailyDataItem> Data { get; set; }
+    public List<DailyDataItem> Data { get; set; } = new List<DailyDataItem>();
     public bool Next { get; set; }
     public bool Prev { get; set; }
     public bool PrevYear { get; set; }
