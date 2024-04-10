@@ -61,6 +61,7 @@ namespace OvoData
             catch (Exception exception)
             {
                 Logger.WriteLine(exception.ToString());
+                MessageBox.Show(exception.ToString(), "Exception");
             }
         }
 
