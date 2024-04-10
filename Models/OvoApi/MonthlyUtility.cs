@@ -6,5 +6,5 @@ public class MonthlyUtility
 {
     public bool Prev { get; set; }
     public bool Next { get; set; }
-    public List<MonthlyDataItem> Data { get; set; } = new List<MonthlyDataItem>();
+    public List<MonthlyDataItem>? Data { get; set; }
 }

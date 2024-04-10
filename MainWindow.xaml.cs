@@ -5,7 +5,6 @@ using OvoData.Models.Database;
 using OvoData.Models.OvoApi;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -185,106 +184,122 @@ namespace OvoData
 
                 var monthly = HttpHelper.GetMonthlyUsage(_configuration, _selectedAccountId, year);
 
+                int monthlyReadings = 0;
+
                 if (monthly.Electricity != null && monthly.Electricity.Data != null)
                 {
                     sqlite.UpsertMonthly("Electric", monthly.Electricity.Data);
 
+                    monthlyReadings += monthly.Electricity.Data.Count;
+
                     SetFirstMonth(monthly.Electricity.Data, year, info);
                     SetLastMonth(monthly.Electricity.Data, year, info);
                 }
+
                 if (monthly.Gas != null && monthly.Gas.Data != null)
                 {
                     sqlite.UpsertMonthly("Gas", monthly.Gas.Data);
+
+                    monthlyReadings += monthly.Gas.Data.Count;
 
                     SetFirstMonth(monthly.Gas.Data, year, info);
                     SetLastMonth(monthly.Gas.Data, year, info);
                 }
 
-                for (var month = lastMonth; month >= 1; month--)
+                if (monthlyReadings > 0)
                 {
-                    if (_cancelRequested)
-                    {
-                        break;
-                    }
-
-                    // Determine last day which is not in the future
-                    var lastDay = LastDayInMonth(year, month);
-                    if (year == thisYear && month == thisMonth)
-                    {
-                        lastDay = DateTime.Now.Day;
-                    }
-
-                    SetStatusText($"Checking Month {year}-{month:D2}");
-
-                    if (year == thisYear && month == thisMonth
-                        || sqlite.CountDaily("Electric", year, month) < lastDay
-                        || sqlite.CountDaily("Gas", year, month) < lastDay)
-                    {
-                        SetStatusText($"Fetching Daily Usage for account {_selectedAccountId} - Month {year}-{month:D2}");
-                        var daily = HttpHelper.GetDailyUsage(_configuration, _selectedAccountId, year, month);
-
-                        if (daily.Electricity.Data != null)
-                        {
-                            sqlite.UpsertDaily("Electric", daily.Electricity.Data);
-
-                            SetFirstDay(daily.Electricity.Data, info);
-                            SetLastDay(daily.Electricity.Data, info);
-                        }
-                        if (daily.Gas.Data != null)
-                        {
-                            sqlite.UpsertDaily("Gas", daily.Gas.Data);
-
-                            SetFirstDay(daily.Gas.Data, info);
-                            SetLastDay(daily.Gas.Data, info);
-                        }
-
-                    }
-
-                    for (var day = lastDay; day >= 1; day--)
+                    for (var month = lastMonth; month >= 1; month--)
                     {
                         if (_cancelRequested)
                         {
                             break;
                         }
 
-                        SetStatusText($"Checking Day {year}-{month:D2}-{day:D2}");
-
-                        if (year == thisYear && month == thisMonth && day == thisDay
-                            || (sqlite.HasHalfHourly("Electric", year, month, day)
-                                && sqlite.CountHalfHourly("Electric", year, month, day) < 48)
-                            || (sqlite.HasHalfHourly("Gas", year, month, day)
-                                && sqlite.CountHalfHourly("Gas", year, month, day) < 48))
+                        // Determine last day which is not in the future
+                        var lastDay = LastDayInMonth(year, month);
+                        if (year == thisYear && month == thisMonth)
                         {
-                            SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccountId} - Day {year}-{month:D2}-{day:D2}");
-                            var halfHourly = HttpHelper.GetHalfHourlyUsage(_configuration, _selectedAccountId, year, month, day);
+                            lastDay = DateTime.Now.Day;
+                        }
 
-                            if (halfHourly.Electricity != null && halfHourly.Electricity.Data != null)
+                        SetStatusText($"Checking Month {year}-{month:D2}");
+
+                        if (year == thisYear && month == thisMonth
+                            || sqlite.CountDaily("Electric", year, month) < lastDay
+                            || sqlite.CountDaily("Gas", year, month) < lastDay)
+                        {
+                            SetStatusText($"Fetching Daily Usage for account {_selectedAccountId} - Month {year}-{month:D2}");
+                            var daily = HttpHelper.GetDailyUsage(_configuration, _selectedAccountId, year, month);
+
+                            if (daily.Electricity != null && daily.Electricity.Data != null)
                             {
-                                sqlite.UpsertHalfHourly("Electric", halfHourly.Electricity.Data);
+                                sqlite.UpsertDaily("Electric", daily.Electricity.Data);
+
+                                SetFirstDay(daily.Electricity.Data, info);
+                                SetLastDay(daily.Electricity.Data, info);
                             }
-                            if (halfHourly.Gas != null && halfHourly.Gas.Data != null)
+
+                            if (daily.Gas != null && daily.Gas.Data != null)
                             {
-                                sqlite.UpsertHalfHourly("Gas", halfHourly.Gas.Data);
+                                sqlite.UpsertDaily("Gas", daily.Gas.Data);
+
+                                SetFirstDay(daily.Gas.Data, info);
+                                SetLastDay(daily.Gas.Data, info);
                             }
                         }
+
+                        for (var day = lastDay; day >= 1; day--)
+                        {
+                            if (_cancelRequested)
+                            {
+                                break;
+                            }
+
+                            SetStatusText($"Checking Day {year}-{month:D2}-{day:D2}");
+
+                            if (year == thisYear && month == thisMonth && day == thisDay
+                                || (sqlite.HasHalfHourly("Electric", year, month, day)
+                                    && sqlite.CountHalfHourly("Electric", year, month, day) < 48)
+                                || (sqlite.HasHalfHourly("Gas", year, month, day)
+                                    && sqlite.CountHalfHourly("Gas", year, month, day) < 48))
+                            {
+                                SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccountId} - Day {year}-{month:D2}-{day:D2}");
+                                var halfHourly = HttpHelper.GetHalfHourlyUsage(_configuration, _selectedAccountId, year, month, day);
+
+                                if (halfHourly.Electricity != null && halfHourly.Electricity.Data != null)
+                                {
+                                    sqlite.UpsertHalfHourly("Electric", halfHourly.Electricity.Data);
+                                }
+                                if (halfHourly.Gas != null && halfHourly.Gas.Data != null)
+                                {
+                                    sqlite.UpsertHalfHourly("Gas", halfHourly.Gas.Data);
+                                }
+                            }
+                        }
+
+                        if (_stopWhen.Equals(Constants.StopAfterThisMonth) && year == thisYear && month == thisMonth)
+                        {
+                            _cancelRequested = true;
+                        }
+
+                        monthsFetched++;
+
+                        if (_stopWhen.Equals(Constants.StopAfterTwoMonths) && monthsFetched >= 2)
+                        {
+                            _cancelRequested = true;
+                        }
                     }
-
-                    if (_stopWhen.Equals(Constants.StopAfterThisMonth) && year == thisYear && month == thisMonth)
-                    {
-                        _cancelRequested = true;
-                    }
-
-                    monthsFetched++;
-
-                    if (_stopWhen.Equals(Constants.StopAfterTwoMonths) && monthsFetched >= 2)
-                    {
-                        _cancelRequested = true;
-                    }
-
                 }
 
                 if (_stopWhen.Equals(Constants.StopAfterThisYear) && year == thisYear)
                 {
+                    _cancelRequested = true;
+                    break;
+                }
+
+                if (monthlyReadings == 0)
+                {
+                    _cancelRequested = true;
                     break;
                 }
 
