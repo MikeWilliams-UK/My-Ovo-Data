@@ -5,6 +5,7 @@ If you like my work, please consider donating at https://www.buymeacoffee.com/mi
 <img src="Assets/BuyMeACoffee-QR.png" width=200 height=200>
 
 When the application is first run you will see this screen.
+
 Enter your details, then click on the Login button.
 
 <img src="Assets/Your OVO SMART meter data LogIn.png">
