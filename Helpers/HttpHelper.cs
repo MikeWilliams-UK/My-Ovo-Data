@@ -1,6 +1,6 @@
-﻿using System;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using OvoData.Models.OvoApi;
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -59,7 +59,6 @@ public static class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 result = JsonSerializer.Deserialize<AccountsResponse>(content, _options);
             }
-
         }
         catch (Exception exception)
         {
@@ -112,7 +111,6 @@ public static class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 result = JsonSerializer.Deserialize<DailyResponse>(content, _options);
             }
-
         }
         catch (Exception exception)
         {

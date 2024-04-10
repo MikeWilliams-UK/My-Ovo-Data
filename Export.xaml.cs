@@ -1,17 +1,17 @@
-﻿using System;
+﻿using CsvHelper;
 using Ookii.Dialogs.Wpf;
 using OpenSpreadsheet;
 using OpenSpreadsheet.Configuration;
 using OvoData.Helpers;
 using OvoData.Models;
 using OvoData.Models.Export;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using CsvHelper;
 
 namespace OvoData
 {
@@ -34,27 +34,34 @@ namespace OvoData
 
         private void OnClick_Export(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button)
+            try
             {
-                Excel.IsEnabled = false;
-                Csv.IsEnabled = false;
-
-                var tag = button.Tag.ToString();
-
-                switch (tag)
+                if (sender is Button button)
                 {
-                    case "Excel":
-                        ExportAsExcel();
-                        break;
+                    Excel.IsEnabled = false;
+                    Csv.IsEnabled = false;
 
-                    case "CSV":
-                        ExportAsCsv();
-                        break;
+                    var tag = button.Tag.ToString();
+
+                    switch (tag)
+                    {
+                        case "Excel":
+                            ExportAsExcel();
+                            break;
+
+                        case "CSV":
+                            ExportAsCsv();
+                            break;
+                    }
                 }
-            }
 
-            Parent.SetStatusText("Data exported");
-            Close();
+                Parent.SetStatusText("Data exported");
+                Close();
+            }
+            catch (Exception exception)
+            {
+                Logger.WriteLine(exception.ToString());
+            }
         }
 
         private void ExportAsCsv()
@@ -235,13 +242,13 @@ namespace OvoData
                 {
                     writer.WriteRecords(chartData.Values.ToList());
                 }
-                
+
                 Parent.SetStatusText("Exporting Daily data");
                 using (var writer = spreadsheet.CreateWorksheetWriter<DailyData, DailyDataMap>("Daily", worksheetStyle))
                 {
                     writer.WriteRecords(_dailyData.Values.ToList());
                 }
-                
+
                 Parent.SetStatusText("Exporting Half Hourly data");
                 using (var writer = spreadsheet.CreateWorksheetWriter<HalfHourlyData, HalfHourlyDataMap>("Half Hourly", worksheetStyle))
                 {
