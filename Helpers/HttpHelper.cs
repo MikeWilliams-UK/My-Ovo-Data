@@ -48,7 +48,7 @@ public static class HttpHelper
 
         try
         {
-            var uri = config["AccountsUri-V2"];
+            var uri = config["AccountsUri"];
             Logger.WriteLine($"Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
