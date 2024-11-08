@@ -41,7 +41,7 @@ public static class Logger
             Directory.CreateDirectory(Path.Combine(folder, "Dump"));
         }
 
-        var fileName = Path.Combine(folder, "Dump", $"{DateTime.Now:yyyy-MM-dd} {responseType}.json");
+        var fileName = Path.Combine(folder, "Dump", $"{DateTime.Now:yyyy-MM-dd HH-mm-ss.fff} {responseType}.json");
 
         File.WriteAllText(fileName, json);
     }
