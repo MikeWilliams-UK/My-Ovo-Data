@@ -109,9 +109,11 @@ public class SqliteHelper
             {
                 var stringBuilder = new StringBuilder();
 
+                double.TryParse(item.Cost.Amount, out var safeCost);
+
                 stringBuilder.AppendLine($"INSERT INTO Monthly{fuelType}");
                 stringBuilder.AppendLine("VALUES");
-                stringBuilder.AppendLine($"('{item.Year}-{item.Month:D2}', '{item.Mpxn}', {item.Consumption}, {item.Cost.Amount})");
+                stringBuilder.AppendLine($"('{item.Year}-{item.Month:D2}', '{item.Mpxn}', {item.Consumption}, {safeCost})");
                 stringBuilder.AppendLine("ON CONFLICT (Month)");
                 stringBuilder.AppendLine("DO UPDATE SET Mxpn = excluded.Mxpn, Consumption = excluded.Consumption, Cost = excluded.Cost");
 
@@ -191,9 +193,11 @@ public class SqliteHelper
 
                 var day = item.Interval.Start.ToString("yyyy-MM-dd");
 
+                double.TryParse(item.Cost.Amount, out var safeCost);
+
                 stringBuilder.AppendLine($"INSERT INTO Daily{fuelType}");
                 stringBuilder.AppendLine("VALUES");
-                stringBuilder.AppendLine($"('{day}', {item.Consumption}, {item.Cost.Amount}, {item.Rates.Standing}, {item.Rates.AnyTime}, {item.Rates.Peak}, {item.Rates.OffPeak}, {item.HasHhData})");
+                stringBuilder.AppendLine($"('{day}', {item.Consumption}, {safeCost}, {item.Rates.Standing}, {item.Rates.AnyTime}, {item.Rates.Peak}, {item.Rates.OffPeak}, {item.HasHhData})");
                 stringBuilder.AppendLine("ON CONFLICT (Day)");
                 stringBuilder.AppendLine("DO UPDATE SET Consumption = excluded.Consumption, Cost = excluded.Cost, Standing = excluded.Standing, AnyTime = excluded.AnyTime, Peak = excluded.Peak, OffPeak = excluded.OffPeak, HasHhData = excluded.HasHhData");
 

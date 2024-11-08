@@ -143,7 +143,7 @@ public static class HttpHelper
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
-                if (ConfigHelper.GetBoolean(config, "GetHalfHourlyUsage", false))
+                if (ConfigHelper.GetBoolean(config, "DumpData", false))
                 {
                     Logger.DumpJson($"{nameof(GetHalfHourlyUsage)}-{year}-{month:D2}-{day:D2}", content);
                 }
