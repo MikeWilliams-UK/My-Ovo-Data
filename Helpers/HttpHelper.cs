@@ -83,6 +83,10 @@ public static class HttpHelper
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
+                if (ConfigHelper.GetBoolean(config, "DumpData", false))
+                {
+                    Logger.DumpJson($"{nameof(GetMonthlyUsage)}-{year}", content);
+                }
                 result = JsonSerializer.Deserialize<MonthlyResponse>(content, _options);
             }
         }
@@ -109,6 +113,10 @@ public static class HttpHelper
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
+                if (ConfigHelper.GetBoolean(config, "DumpData", false))
+                {
+                    Logger.DumpJson($"{nameof(GetDailyUsage)}-{year}-{month:D2}", content);
+                }
                 result = JsonSerializer.Deserialize<DailyResponse>(content, _options);
             }
         }
@@ -135,6 +143,10 @@ public static class HttpHelper
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
+                if (ConfigHelper.GetBoolean(config, "DumpData", false))
+                {
+                    Logger.DumpJson($"{nameof(GetHalfHourlyUsage)}-{year}-{month:D2}-{day:D2}", content);
+                }
                 result = JsonSerializer.Deserialize<HalfHourlyResponse>(content, _options);
             }
         }

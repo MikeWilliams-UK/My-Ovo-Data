@@ -2,6 +2,6 @@
 
 public class Cost
 {
-    public string CurrencyUnit { get; set; }
-    public string Amount { get; set; }
+    public string CurrencyUnit { get; set; } = string.Empty;
+    public string Amount { get; set; } = string.Empty;
 }

@@ -8,8 +8,8 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
         <ApplicationIcon>Ovo.ico</ApplicationIcon>
-        <AssemblyVersion>1.0.2</AssemblyVersion>
-        <FileVersion>1.0.2.2</FileVersion>
+        <AssemblyVersion>1.0.3</AssemblyVersion>
+        <FileVersion>1.0.3.3</FileVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -33,12 +33,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CsvHelper" Version="30.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+        <PackageReference Include="CsvHelper" Version="33.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
         <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
         <PackageReference Include="OpenSpreadsheet" Version="1.2.3" />
         <PackageReference Include="SQLite" Version="3.13.0" />
-        <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+        <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
     </ItemGroup>
 
 </Project>

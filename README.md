@@ -1,5 +1,12 @@
 Get your energy usage data from OVO via it's API.
 
+There have been reports that some Windows 11 users require this to be run elevated (as admin).
+This is probably due to permissions to the folder C:\ProgramData.
+
+If this affects you please create the above folder and assign "Full control" to the Users Group
+
+<img src="Assets/FolderPermissions.png">
+
 If you like my work, please consider donating at https://www.buymeacoffee.com/mikewilliamsuk
 
 <img src="Assets/BuyMeACoffee-QR.png" width=200 height=200>
