@@ -26,7 +26,7 @@ public sealed class MonthlyChartDataMap : ClassMap<MonthlyChartData>
         Map(x => x.FebCost).Name("Feb Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);
         Map(x => x.MarCost).Name("Mar Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);
         Map(x => x.AprCost).Name("Apr Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);
-        Map(x => x.MayCost).Name("Jan Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);
+        Map(x => x.MayCost).Name("May Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);
         Map(x => x.JunCost).Name("Jun Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);
         Map(x => x.JulCost).Name("Jul Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);
         Map(x => x.AugCost).Name("Aug Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);
