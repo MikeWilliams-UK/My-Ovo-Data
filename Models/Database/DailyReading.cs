@@ -2,7 +2,7 @@
 
 public class DailyReading
 {
-    public string Day { get; set; }
+    public string Day { get; set; } = string.Empty;
     public double Consumption { get; set; }
     public double Standing { get; set; }
     public double AnyTime { get; set; }

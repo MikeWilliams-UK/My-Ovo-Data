@@ -2,7 +2,7 @@
 
 public class MonthlyData
 {
-    public string Month { get; set; }
+    public string Month { get; set; } = string.Empty;
 
     public double ElectricKwh { get; set; }
     public double ElectricCost { get; set; }

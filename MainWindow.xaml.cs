@@ -19,26 +19,26 @@ namespace OvoData
     /// </summary>
     public partial class MainWindow : Window
     {
-        private IConfigurationRoot _configuration;
+        private readonly IConfigurationRoot _configuration;
 
-        private string _selectedAccountId;
+        private string _selectedAccountId = string.Empty;
 
         private bool _cancelRequested;
 
-        private string _stopWhen;
+        private string _stopWhen = string.Empty;
 
         public MainWindow()
-        {
-            InitializeComponent();
-        }
-
-        private void OnLoaded_MainWindow(object sender, RoutedEventArgs e)
         {
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("AppSettings.json")
                 .Build();
 
+            InitializeComponent();
+        }
+
+        private void OnLoaded_MainWindow(object sender, RoutedEventArgs e)
+        {
             ReadFromRegistry();
 
             StopWhen.Items.Add(Constants.StopAfterThisMonth);
@@ -335,12 +335,11 @@ namespace OvoData
         {
             SetStateOfControls(false);
 
-            var window = new Export
+            var window = new Export(this)
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Account = _selectedAccountId,
-                Parent = this
+                Account = _selectedAccountId
             };
             window.ShowDialog();
 

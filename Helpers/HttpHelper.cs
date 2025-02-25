@@ -74,7 +74,7 @@ public static class HttpHelper
 
         try
         {
-            var uri = string.Format(config["MonthlyUri"], accountId, year);
+            var uri = string.Format(config["MonthlyUri"]!, accountId, year);
             Logger.WriteLine($"Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -95,7 +95,7 @@ public static class HttpHelper
             Logger.WriteLine(exception.ToString());
         }
 
-        return result;
+        return result!;
     }
 
     public static DailyResponse GetDailyUsage(IConfigurationRoot config, string accountId, int year, int month)
@@ -104,7 +104,7 @@ public static class HttpHelper
 
         try
         {
-            var uri = string.Format(config["DailyUri"], accountId, $"{year}-{month:D2}");
+            var uri = string.Format(config["DailyUri"]!, accountId, $"{year}-{month:D2}");
             Logger.WriteLine($"Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -134,7 +134,7 @@ public static class HttpHelper
 
         try
         {
-            var uri = string.Format(config["HalfHourlyUri"], accountId, $"{year}-{month:D2}-{day:D2}");
+            var uri = string.Format(config["HalfHourlyUri"]!, accountId, $"{year}-{month:D2}-{day:D2}");
             Logger.WriteLine($"Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);

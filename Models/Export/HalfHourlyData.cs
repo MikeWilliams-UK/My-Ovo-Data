@@ -2,7 +2,7 @@
 
 public class HalfHourlyData
 {
-    public string StartTime { get; set; }
+    public string StartTime { get; set; } = string.Empty;
 
     public double ElectricKwh { get; set; }
 

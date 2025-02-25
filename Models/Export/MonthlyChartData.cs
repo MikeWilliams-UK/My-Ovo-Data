@@ -2,7 +2,7 @@
 
 public class MonthlyChartData
 {
-    public string Year { get; set; }
+    public string Year { get; set; } = string.Empty;
 
     public double JanKwh { get; set; }
     public double JanCost { get; set; }

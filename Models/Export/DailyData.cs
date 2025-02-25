@@ -2,7 +2,7 @@
 
 public class DailyData
 {
-    public string Day { get; set; }
+    public string Day { get; set; } = string.Empty;
 
     public double ElectricKwh { get; set; }
     public double ElectricStanding { get; set; }

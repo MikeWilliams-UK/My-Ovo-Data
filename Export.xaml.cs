@@ -20,15 +20,16 @@ namespace OvoData
     /// </summary>
     public partial class Export : Window
     {
-        private SortedDictionary<string, MonthlyData> _monthlyData;
-        private SortedDictionary<string, DailyData> _dailyData;
-        private SortedDictionary<string, HalfHourlyData> _halfHourlyData;
+        private SortedDictionary<string, MonthlyData> _monthlyData = new();
+        private SortedDictionary<string, DailyData> _dailyData = new();
+        private SortedDictionary<string, HalfHourlyData> _halfHourlyData = new();
 
-        public MainWindow Parent { get; set; }
-        public string Account { get; set; }
+        public MainWindow ParentWindow { get; set; }
+        public string Account { get; set; } = string.Empty;
 
-        public Export()
+        public Export(MainWindow parent)
         {
+            ParentWindow = parent;
             InitializeComponent();
         }
 
@@ -55,7 +56,7 @@ namespace OvoData
                     }
                 }
 
-                Parent.SetStatusText("Data exported");
+                ParentWindow.SetStatusText("Data exported");
                 Close();
             }
             catch (Exception exception)
@@ -77,7 +78,7 @@ namespace OvoData
 
         private void ExportToCsv(string folder)
         {
-            Parent.SetStatusText("Exporting Monthly data");
+            ParentWindow.SetStatusText("Exporting Monthly data");
 
             var monthlyFile = Path.Combine(folder, $"{Account} Monthly.csv");
             if (File.Exists(monthlyFile))
@@ -93,7 +94,7 @@ namespace OvoData
                 }
             }
 
-            Parent.SetStatusText("Exporting Daily data");
+            ParentWindow.SetStatusText("Exporting Daily data");
             var dailyFile = Path.Combine(folder, $"{Account} Daily.csv");
             if (File.Exists(dailyFile))
             {
@@ -108,7 +109,7 @@ namespace OvoData
                 }
             }
 
-            Parent.SetStatusText("Exporting Half Hourly data");
+            ParentWindow.SetStatusText("Exporting Half Hourly data");
             var halfHourlyFile = Path.Combine(folder, $"{Account} Half Hourly.csv");
             if (File.Exists(halfHourlyFile))
             {
@@ -152,13 +153,13 @@ namespace OvoData
                     ShouldWriteHeaderRow = true
                 };
 
-                Parent.SetStatusText("Exporting Monthly data");
+                ParentWindow.SetStatusText("Exporting Monthly data");
                 using (var writer = spreadsheet.CreateWorksheetWriter<MonthlyData, MonthlyDataMap>("Monthly", worksheetStyle))
                 {
                     writer.WriteRecords(_monthlyData.Values.ToList());
                 }
 
-                Parent.SetStatusText("Exporting Monthly Chart data");
+                ParentWindow.SetStatusText("Exporting Monthly Chart data");
                 var chartData = new SortedDictionary<string, MonthlyChartData>();
                 foreach (var monthlyData in _monthlyData)
                 {
@@ -244,13 +245,13 @@ namespace OvoData
                     writer.WriteRecords(chartData.Values.ToList());
                 }
 
-                Parent.SetStatusText("Exporting Daily data");
+                ParentWindow.SetStatusText("Exporting Daily data");
                 using (var writer = spreadsheet.CreateWorksheetWriter<DailyData, DailyDataMap>("Daily", worksheetStyle))
                 {
                     writer.WriteRecords(_dailyData.Values.ToList());
                 }
 
-                Parent.SetStatusText("Exporting Half Hourly data");
+                ParentWindow.SetStatusText("Exporting Half Hourly data");
                 using (var writer = spreadsheet.CreateWorksheetWriter<HalfHourlyData, HalfHourlyDataMap>("Half Hourly", worksheetStyle))
                 {
                     writer.WriteRecords(_halfHourlyData.Values.ToList());
@@ -261,11 +262,11 @@ namespace OvoData
         private void CollectData()
         {
             var helper = new SqliteHelper(Account);
-            Parent.SetStatusText("Fetching Monthly data");
+            ParentWindow.SetStatusText("Fetching Monthly data");
             _monthlyData = GetMonthlyData(helper);
-            Parent.SetStatusText("Fetching Daily data");
+            ParentWindow.SetStatusText("Fetching Daily data");
             _dailyData = GetDailyData(helper);
-            Parent.SetStatusText("Fetching Half Hourly data");
+            ParentWindow.SetStatusText("Fetching Half Hourly data");
             _halfHourlyData = GetHalfHourlyData(helper);
         }
 

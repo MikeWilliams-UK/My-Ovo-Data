@@ -2,11 +2,11 @@
 
 public class Information
 {
-    public string AccountId { get; set; }
+    public string AccountId { get; set; } = string.Empty;
 
-    public string FirstMonth { get; set; }
-    public string LastMonth { get; set; }
+    public string FirstMonth { get; set; } = string.Empty;
+    public string LastMonth { get; set; } = string.Empty;
 
-    public string FirstDay { get; set; }
-    public string LastDay { get; set; }
+    public string FirstDay { get; set; } = string.Empty;
+    public string LastDay { get; set; } = string.Empty;
 }
