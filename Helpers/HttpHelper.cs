@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using OvoData.Models.OvoApi;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -20,29 +23,84 @@ public static class HttpHelper
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public static bool Login(IConfigurationRoot config, LoginRequest loginRequest)
+    public static bool Login(IConfigurationRoot config, LoginRequest loginRequest, out string? token)
     {
         bool result;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, config["LoginUri"]);
+        var uri = new Uri(config["LoginUri"]);
+        var request = new HttpRequestMessage(HttpMethod.Post, uri);
 
         var content = JsonSerializer.Serialize(loginRequest, _options);
         request.Content = new StringContent(content, Encoding.ASCII, "application/json");
-        var response = _httpClient.SendAsync(request).Result;
+        HttpResponseMessage response = _httpClient.SendAsync(request).Result;
 
         if (response.IsSuccessStatusCode)
         {
-            result = true;
+            var cookies = new List<Cookie>();
+            if (response.Headers.TryGetValues("Set-Cookie", out var cookieHeaders))
+            {
+                foreach (var header in cookieHeaders)
+                {
+                    var cookieContainer = new CookieContainer();
+                    cookieContainer.SetCookies(uri, header);
+
+                    foreach (Cookie cookie in cookieContainer.GetCookies(uri))
+                    {
+                        cookies.Add(cookie);
+                    }
+                }
+            }
+
+            var tempToken = cookies[0].Value;
+            var newToken = "";
+            if (PostLogin(config, tempToken, out newToken))
+            {
+                token = newToken;
+                result = true;
+            }
+            else
+            {
+                token = string.Empty;
+                result = false;
+            }
         }
         else
         {
+            token = string.Empty;
             result = false;
         }
 
         return result;
     }
 
-    public static AccountsResponse GetAccountIds(IConfigurationRoot config)
+    public static bool PostLogin(IConfigurationRoot config, string tempToken, out string token)
+    {
+        bool result;
+        token = "";
+
+        var uri = new Uri(config["PostLoginUri"]);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, uri);
+        request.Headers.Add("restricted_refresh_token", tempToken);
+
+        HttpResponseMessage response = _httpClient.SendAsync(request).Result;
+
+        if (response.IsSuccessStatusCode)
+        {
+
+            token = response.Content.ToString();
+            result = true;
+        }
+        else
+        {
+            token = string.Empty;
+            result = false;
+        }
+
+        return result;
+    }
+
+    public static AccountsResponse GetAccountIds(IConfigurationRoot config, string token)
     {
         var result = new AccountsResponse();
 
@@ -52,6 +110,7 @@ public static class HttpHelper
             Logger.WriteLine($"Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.Add("Authorization", token);
 
             var response = _httpClient.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)

@@ -5,8 +5,10 @@ using OvoData.Models.Database;
 using OvoData.Models.OvoApi;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -68,6 +70,8 @@ namespace OvoData
             key.SetValue("Password", Password.Password);
         }
 
+        private string token = string.Empty;
+
         private void OnClick_Login(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(UserName.Text) && string.IsNullOrEmpty(Password.Password))
@@ -87,12 +91,12 @@ namespace OvoData
 
                 SetStatusText("Connecting ...");
 
-                if (HttpHelper.Login(_configuration, details))
+                if (HttpHelper.Login(_configuration, details, out token) && !string.IsNullOrEmpty(token))
                 {
                     Login.IsEnabled = false;
                     SetStatusText("Obtaining your account(s) ...");
 
-                    var accounts = HttpHelper.GetAccountIds(_configuration);
+                    var accounts = HttpHelper.GetAccountIds(_configuration, token);
 
                     if (accounts.AccountIds.Any())
                     {
