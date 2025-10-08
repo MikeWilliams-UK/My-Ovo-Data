@@ -3,9 +3,9 @@ using OvoData.Models.OvoApi;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -33,10 +33,10 @@ public class HttpHelper
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public bool Login(string username, string password, out Tokens tokens, out AccountsResponse data)
+    public bool Login(string username, string password, out Tokens tokens, out List<OvoAccount> ovoAccounts)
     {
         var result = false;
-        data = new AccountsResponse();
+        ovoAccounts = new List<OvoAccount>();
         tokens = new Tokens();
 
         var request = new LoginRequest
@@ -47,7 +47,7 @@ public class HttpHelper
         if (DoLogin(request, out tokens))
         {
             tokens = DoGetAccessToken(tokens);
-            data = DoGetAccounts(tokens);
+            ovoAccounts = DoGetOvoAccounts(tokens);
             result = true;
         }
 
@@ -116,25 +116,28 @@ public class HttpHelper
 
             if (tokenResponse != null)
             {
+                tokens.RefreshTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.RefreshExpiresIn);
                 tokens.AccessToken = tokenResponse.AccessToken.Value;
+                tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn);
             }
         }
 
         return tokens;
     }
 
-    private AccountsResponse DoGetAccounts(Tokens tokens)
+    private List<OvoAccount> DoGetOvoAccounts(Tokens tokens)
     {
-        var result = new AccountsResponse();
+        var result = new List<OvoAccount>();
 
-        var client = new HttpClient();
         var request = new HttpRequestMessage(HttpMethod.Post, _configuration["AccountsUri"]!);
         request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
-        var graphQl = "{\r\n  \"operationName\": \"Bootstrap\",\r\n  \"variables\": {\r\n    \"customerId\": \"[[CustomerGuid]]\"\r\n  },\r\n  \"query\": \"query Bootstrap($customerId: ID!) {\\n  customer_nextV1(id: $customerId) {\\n    id\\n    customerAccountRelationships {\\n      edges {\\n        node {\\n          account {\\n            accountNo\\n            id\\n            accountSupplyPoints {\\n              ...AccountSupplyPoint\\n              __typename\\n            }\\n            __typename\\n          }\\n          __typename\\n        }\\n        __typename\\n      }\\n      __typename\\n    }\\n    __typename\\n  }\\n}\\n\\nfragment AccountSupplyPoint on AccountSupplyPoint {\\n  startDate\\n  supplyPoint {\\n    sprn\\n    fuelType\\n    meterTechnicalDetails {\\n      meterSerialNumber\\n      mode\\n      type\\n      status\\n      __typename\\n    }\\n    address {\\n      addressLines\\n      postCode\\n      __typename\\n    }\\n    __typename\\n  }\\n  __typename\\n}\"\r\n}";
+
+        var graphQl = "{\r\n \"operationName\": \"Bootstrap\",\r\n \"variables\": {\r\n \"customerId\": \"[[CustomerGuid]]\"\r\n },\r\n \"query\": \"query Bootstrap($customerId: ID!) {\\n customer_nextV1(id: $customerId) {\\n id\\n customerAccountRelationships {\\n edges {\\n node {\\n account {\\n accountNo\\n id\\n accountSupplyPoints {\\n ...AccountSupplyPoint\\n __typename\\n }\\n __typename\\n }\\n __typename\\n }\\n __typename\\n }\\n __typename\\n }\\n __typename\\n }\\n}\\n\\nfragment AccountSupplyPoint on AccountSupplyPoint {\\n startDate\\n supplyPoint {\\n sprn\\n fuelType\\n meterTechnicalDetails {\\n meterSerialNumber\\n mode\\n type\\n status\\n __typename\\n }\\n address {\\n addressLines\\n postCode\\n __typename\\n }\\n __typename\\n }\\n __typename\\n}\"\r\n}";
         graphQl = graphQl.Replace("[[CustomerGuid]]", tokens.UserGuid);
         var content = new StringContent(graphQl, null, "application/json");
         request.Content = content;
-        var response = client.SendAsync(request).Result;
+
+        var response = _httpClient2.SendAsync(request).Result;
         response.EnsureSuccessStatusCode();
         if (response.IsSuccessStatusCode)
         {
@@ -142,89 +145,46 @@ public class HttpHelper
             var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, _options);
             if (accountsResponse != null)
             {
-                result = accountsResponse;
+                var edges = accountsResponse.Data.CustomerNextV1.CustomerAccountRelationships.Edges.ToList();
+                foreach (var edge in edges)
+                {
+                    var ovoAccount = new OvoAccount();
+                    ovoAccount.Id = edge.Node.Account.AccountNo;
+                    var electric = edge.Node.Account.AccountSupplyPoints.Any(s => s.SupplyPoint.FuelType.Equals("ELECTRICITY"));
+                    ovoAccount.HasElectric = electric;
+
+                    var gas = edge.Node.Account.AccountSupplyPoints.Any(s => s.SupplyPoint.FuelType.Equals("GAS"));
+                    ovoAccount.HasElectric = gas;
+                    result.Add(ovoAccount);
+                }
             }
         }
 
         return result;
     }
 
-    private GraphQlRequest ConstructGraphQl(string customerGuid)
-    {
-        var request = new GraphQlRequest
-        {
-            OperationName = "Bootstrap",
-            Variables = new Dictionary<string, object>
-            {
-                { "customerId", customerGuid }
-            },
-            Query = @"query Bootstrap($customerId: ID!) {
-  customer_nextV1(id: $customerId) {
-    id
-    customerAccountRelationships {
-      edges {
-        node {
-          account {
-            accountNo
-            id
-            accountSupplyPoints {
-              ...AccountSupplyPoint
-              __typename
-            }
-            __typename
-          }
-          __typename
-        }
-        __typename
-      }
-      __typename
-    }
-    __typename
-  }
-}
-
-fragment AccountSupplyPoint on AccountSupplyPoint {
-  startDate
-  supplyPoint {
-    sprn
-    fuelType
-    meterTechnicalDetails {
-      meterSerialNumber
-      mode
-      type
-      status
-      __typename
-    }
-    address {
-      addressLines
-      postCode
-      __typename
-    }
-    __typename
-  }
-  __typename
-}"
-        };
-
-        return request;
-    }
-
-    public MonthlyResponse GetMonthlyUsage(IConfigurationRoot config, string accountId, int year)
+    public MonthlyResponse GetMonthlyUsage(Tokens tokens, string accountId, int year)
     {
         var result = new MonthlyResponse();
 
         try
         {
-            var uri = string.Format(config["MonthlyUri"]!, accountId, year);
+            if (DateTime.Now > tokens.AccessTokenExpiryTime)
+            {
+                tokens = DoGetAccessToken(tokens);
+            }
+
+            var uri = string.Format(_configuration["MonthlyUri"]!, accountId, year);
             Logger.WriteLine($"Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
-            var response = _httpClient1.SendAsync(request).Result;
+            var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
-                if (ConfigHelper.GetBoolean(config, "DumpData", false))
+                if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
                     Logger.DumpJson($"{nameof(GetMonthlyUsage)}-{year}", content);
                 }
@@ -239,22 +199,28 @@ fragment AccountSupplyPoint on AccountSupplyPoint {
         return result!;
     }
 
-    public DailyResponse GetDailyUsage(IConfigurationRoot config, string accountId, int year, int month)
+    public DailyResponse GetDailyUsage(Tokens tokens, string accountId, int year, int month)
     {
         var result = new DailyResponse();
 
         try
         {
-            var uri = string.Format(config["DailyUri"]!, accountId, $"{year}-{month:D2}");
+            if (DateTime.Now > tokens.AccessTokenExpiryTime)
+            {
+                tokens = DoGetAccessToken(tokens);
+            }
+
+            var uri = string.Format(_configuration["DailyUri"]!, accountId, $"{year}-{month:D2}");
             Logger.WriteLine($"Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
-            var response = _httpClient1.SendAsync(request).Result;
+            var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
-                if (ConfigHelper.GetBoolean(config, "DumpData", false))
+                if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
                     Logger.DumpJson($"{nameof(GetDailyUsage)}-{year}-{month:D2}", content);
                 }
@@ -269,22 +235,28 @@ fragment AccountSupplyPoint on AccountSupplyPoint {
         return result;
     }
 
-    public HalfHourlyResponse GetHalfHourlyUsage(IConfigurationRoot config, string accountId, int year, int month, int day)
+    public HalfHourlyResponse GetHalfHourlyUsage(Tokens tokens, string accountId, int year, int month, int day)
     {
         var result = new HalfHourlyResponse();
 
         try
         {
-            var uri = string.Format(config["HalfHourlyUri"]!, accountId, $"{year}-{month:D2}-{day:D2}");
+            if (DateTime.Now > tokens.AccessTokenExpiryTime)
+            {
+                tokens = DoGetAccessToken(tokens);
+            }
+
+            var uri = string.Format(_configuration["HalfHourlyUri"]!, accountId, $"{year}-{month:D2}-{day:D2}");
             Logger.WriteLine($"Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
-            var response = _httpClient1.SendAsync(request).Result;
+            var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
-                if (ConfigHelper.GetBoolean(config, "DumpData", false))
+                if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
                     Logger.DumpJson($"{nameof(GetHalfHourlyUsage)}-{year}-{month:D2}-{day:D2}", content);
                 }

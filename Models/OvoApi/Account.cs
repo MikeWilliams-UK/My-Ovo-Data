@@ -12,5 +12,5 @@ public class Account
     public List<AccountSupplyPoint> AccountSupplyPoints { get; set; }
 
     [JsonPropertyName("__typename")]
-    public string __typename { get; set; }
+    public string TypeName { get; set; }
 }

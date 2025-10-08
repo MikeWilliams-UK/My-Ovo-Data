@@ -71,7 +71,8 @@ namespace OvoData
             key.SetValue("Password", Password.Password);
         }
 
-        private string token = string.Empty;
+        private Tokens _tokens;
+        private List<OvoAccount> _accounts;
 
         private void OnClick_Login(object sender, RoutedEventArgs e)
         {
@@ -87,25 +88,24 @@ namespace OvoData
 
                 _httpHelper = new HttpHelper(_configuration);
 
-                if (_httpHelper.Login(UserName.Text, Password.Password, out var tokens, out var data))
+                if (_httpHelper.Login(UserName.Text, Password.Password, out var tokens, out var ovoAccounts))
                 {
-                    Debug.WriteLine($"{tokens.UserGuid}");
-                    var accountIds = data.Data.CustomerNextV1.customerAccountRelationships.Edges
-                        .Select(a => a.Node.Account.AccountNo)
-                        .ToList();
-
                     Login.IsEnabled = false;
 
-                    if (accountIds.Any())
+                    if (ovoAccounts.Any())
                     {
-                        foreach (var accountId in accountIds)
+                        _accounts = ovoAccounts;
+                        _tokens = tokens;
+
+                        foreach (var ovoAccount in ovoAccounts)
                         {
-                            Accounts.Items.Add(accountId);
+                            Accounts.Items.Add(ovoAccount);
                         }
 
-                        if (accountIds.Count == 1)
+                        if (ovoAccounts.Count == 1)
                         {
                             Accounts.SelectedIndex = 0;
+                            SetStatusText($"Account {ovoAccounts[0].Id} selected");
                         }
                         else
                         {
@@ -119,9 +119,9 @@ namespace OvoData
         private void OnSelectionChanged_Accounts(object sender, SelectionChangedEventArgs e)
         {
             if (Accounts.SelectedItems.Count == 1
-                && Accounts.SelectedItem is string accountId)
+                && Accounts.SelectedItem is OvoAccount account)
             {
-                _selectedAccountId = accountId;
+                _selectedAccountId = account.Id;
                 SetStateOfControls(true);
 
                 var sqlite = new SqliteHelper(_selectedAccountId);
@@ -186,7 +186,7 @@ namespace OvoData
 
                     SetStatusText($"Checking Year {year}");
 
-                    var monthly =  _httpHelper.GetMonthlyUsage(_configuration, _selectedAccountId, year);
+                    var monthly =  _httpHelper.GetMonthlyUsage(_tokens, _selectedAccountId, year);
 
                     int monthlyReadings = 0;
 
@@ -233,7 +233,7 @@ namespace OvoData
                                 || sqlite.CountDaily("Gas", year, month) < lastDay)
                             {
                                 SetStatusText($"Fetching Daily Usage for account {_selectedAccountId} - Month {year}-{month:D2}");
-                                var daily = _httpHelper.GetDailyUsage(_configuration, _selectedAccountId, year, month);
+                                var daily = _httpHelper.GetDailyUsage(_tokens, _selectedAccountId, year, month);
 
                                 if (daily.Electricity != null && daily.Electricity.Data != null)
                                 {
@@ -268,7 +268,7 @@ namespace OvoData
                                         && sqlite.CountHalfHourly("Gas", year, month, day) < 48))
                                 {
                                     SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccountId} - Day {year}-{month:D2}-{day:D2}");
-                                    var halfHourly = _httpHelper.GetHalfHourlyUsage(_configuration, _selectedAccountId, year, month, day);
+                                    var halfHourly = _httpHelper.GetHalfHourlyUsage(_tokens, _selectedAccountId, year, month, day);
 
                                     if (halfHourly.Electricity != null && halfHourly.Electricity.Data != null)
                                     {

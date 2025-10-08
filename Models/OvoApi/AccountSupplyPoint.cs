@@ -9,5 +9,5 @@ public class AccountSupplyPoint
     public SupplyPoint SupplyPoint { get; set; }
 
     [JsonPropertyName("__typename")]
-    public string __typename { get; set; }
+    public string TypeName { get; set; }
 }
