@@ -87,39 +87,32 @@ namespace OvoData
 
                 _httpHelper = new HttpHelper(_configuration);
 
-                if (_httpHelper.Login(UserName.Text, Password.Password, out Tokens tokens, out var data))
+                if (_httpHelper.Login(UserName.Text, Password.Password, out var tokens, out var data))
                 {
                     Debug.WriteLine($"{tokens.UserGuid}");
-                    Debug.WriteLine($"{data.Data.CustomerNextV1.customerAccountRelationships.Edges[0].Node.Account.AccountNo}");
+                    var accountIds = data.Data.CustomerNextV1.customerAccountRelationships.Edges
+                        .Select(a => a.Node.Account.AccountNo)
+                        .ToList();
 
                     Login.IsEnabled = false;
-                    Debugger.Break();
+
+                    if (accountIds.Any())
+                    {
+                        foreach (var accountId in accountIds)
+                        {
+                            Accounts.Items.Add(accountId);
+                        }
+
+                        if (accountIds.Count == 1)
+                        {
+                            Accounts.SelectedIndex = 0;
+                        }
+                        else
+                        {
+                            SetStatusText("Please select an account");
+                        }
+                    }
                 }
-
-                //if (HttpHelper.Login(_configuration, details, out token) && !string.IsNullOrEmpty(token))
-                //{
-                //    Login.IsEnabled = false;
-                //    SetStatusText("Obtaining your account(s) ...");
-
-                //    var accounts = HttpHelper.GetAccountIds(_configuration, token);
-
-                //    if (accounts.AccountIds.Any())
-                //    {
-                //        foreach (var accountId in accounts.AccountIds)
-                //        {
-                //            Accounts.Items.Add(accountId);
-                //        }
-
-                //        if (accounts.AccountIds.Count == 1)
-                //        {
-                //            Accounts.SelectedIndex = 0;
-                //        }
-                //        else
-                //        {
-                //            SetStatusText("Please select an account");
-                //        }
-                //    }
-                //}
             }
         }
 
