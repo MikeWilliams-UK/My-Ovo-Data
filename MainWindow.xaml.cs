@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,6 +27,8 @@ namespace OvoData
         private bool _cancelRequested;
 
         private string _stopWhen = string.Empty;
+
+        private HttpHelper _httpHelper;
 
         public MainWindow()
         {
@@ -82,39 +83,43 @@ namespace OvoData
             {
                 WriteToRegistry();
 
-                var details = new LoginRequest
-                {
-                    Username = UserName.Text,
-                    Password = Password.Password,
-                    RememberMe = true
-                };
-
                 SetStatusText("Connecting ...");
 
-                if (HttpHelper.Login(_configuration, details, out token) && !string.IsNullOrEmpty(token))
+                _httpHelper = new HttpHelper(_configuration);
+
+                if (_httpHelper.Login(UserName.Text, Password.Password, out Tokens tokens, out var data))
                 {
+                    Debug.WriteLine($"{tokens.UserGuid}");
+                    Debug.WriteLine($"{data.CustomerNextV1.customerAccountRelationships.Edges[0].Node.Account.AccountNo}");
+
                     Login.IsEnabled = false;
-                    SetStatusText("Obtaining your account(s) ...");
-
-                    var accounts = HttpHelper.GetAccountIds(_configuration, token);
-
-                    if (accounts.AccountIds.Any())
-                    {
-                        foreach (var accountId in accounts.AccountIds)
-                        {
-                            Accounts.Items.Add(accountId);
-                        }
-
-                        if (accounts.AccountIds.Count == 1)
-                        {
-                            Accounts.SelectedIndex = 0;
-                        }
-                        else
-                        {
-                            SetStatusText("Please select an account");
-                        }
-                    }
+                    Debugger.Break();
                 }
+
+                //if (HttpHelper.Login(_configuration, details, out token) && !string.IsNullOrEmpty(token))
+                //{
+                //    Login.IsEnabled = false;
+                //    SetStatusText("Obtaining your account(s) ...");
+
+                //    var accounts = HttpHelper.GetAccountIds(_configuration, token);
+
+                //    if (accounts.AccountIds.Any())
+                //    {
+                //        foreach (var accountId in accounts.AccountIds)
+                //        {
+                //            Accounts.Items.Add(accountId);
+                //        }
+
+                //        if (accounts.AccountIds.Count == 1)
+                //        {
+                //            Accounts.SelectedIndex = 0;
+                //        }
+                //        else
+                //        {
+                //            SetStatusText("Please select an account");
+                //        }
+                //    }
+                //}
             }
         }
 
@@ -188,7 +193,7 @@ namespace OvoData
 
                     SetStatusText($"Checking Year {year}");
 
-                    var monthly = HttpHelper.GetMonthlyUsage(_configuration, _selectedAccountId, year);
+                    var monthly =  _httpHelper.GetMonthlyUsage(_configuration, _selectedAccountId, year);
 
                     int monthlyReadings = 0;
 
@@ -235,7 +240,7 @@ namespace OvoData
                                 || sqlite.CountDaily("Gas", year, month) < lastDay)
                             {
                                 SetStatusText($"Fetching Daily Usage for account {_selectedAccountId} - Month {year}-{month:D2}");
-                                var daily = HttpHelper.GetDailyUsage(_configuration, _selectedAccountId, year, month);
+                                var daily = _httpHelper.GetDailyUsage(_configuration, _selectedAccountId, year, month);
 
                                 if (daily.Electricity != null && daily.Electricity.Data != null)
                                 {
@@ -270,7 +275,7 @@ namespace OvoData
                                         && sqlite.CountHalfHourly("Gas", year, month, day) < 48))
                                 {
                                     SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccountId} - Day {year}-{month:D2}-{day:D2}");
-                                    var halfHourly = HttpHelper.GetHalfHourlyUsage(_configuration, _selectedAccountId, year, month, day);
+                                    var halfHourly = _httpHelper.GetHalfHourlyUsage(_configuration, _selectedAccountId, year, month, day);
 
                                     if (halfHourly.Electricity != null && halfHourly.Electricity.Data != null)
                                     {

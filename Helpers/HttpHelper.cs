@@ -2,18 +2,27 @@
 using OvoData.Models.OvoApi;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace OvoData.Helpers;
 
-public static class HttpHelper
+public class HttpHelper
 {
-    private static HttpClient _httpClient = new HttpClient();
+    private readonly HttpClient _httpClient1 = new();
+    private readonly HttpClient _httpClient2 = new();
+    private readonly HttpClient _httpClient3 = new();
+    private readonly IConfigurationRoot _configuration;
+
+    public HttpHelper(IConfigurationRoot configuration)
+    {
+        _configuration = configuration;
+    }
 
     private static JsonSerializerOptions _options = new JsonSerializerOptions()
     {
@@ -23,19 +32,49 @@ public static class HttpHelper
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public static bool Login(IConfigurationRoot config, LoginRequest loginRequest, out string? token)
+    public bool Login(string username, string password, out Tokens tokens, out AccountsResponse data)
+    {
+        var result = false;
+        data = new AccountsResponse();
+        tokens = new Tokens();
+
+        var request = new LoginRequest
+        {
+            Username = username, Password = password
+        };
+
+        if (DoLogin(request, out tokens))
+        {
+            tokens = DoGetAccessToken(tokens);
+            data = DoGetAccounts(tokens);
+            result = true;
+        }
+
+        return result;
+    }
+
+    private bool DoLogin(LoginRequest loginRequest, out Tokens tokens)
     {
         bool result;
+        tokens = new Tokens();
 
-        var uri = new Uri(config["LoginUri"]);
+        var uri = new Uri(_configuration["LoginUri"]!);
         var request = new HttpRequestMessage(HttpMethod.Post, uri);
+        var requestContent = JsonSerializer.Serialize(loginRequest, _options);
+        request.Content = new StringContent(requestContent, Encoding.ASCII, "application/json");
 
-        var content = JsonSerializer.Serialize(loginRequest, _options);
-        request.Content = new StringContent(content, Encoding.ASCII, "application/json");
-        HttpResponseMessage response = _httpClient.SendAsync(request).Result;
-
+        var response = _httpClient1.SendAsync(request).Result;
         if (response.IsSuccessStatusCode)
         {
+            var responseContent = response.Content.ReadAsStringAsync().Result;
+            var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, _options);
+            if (loginResponse != null)
+            {
+                tokens.UserGuid = loginResponse.UserId;
+                Debug.WriteLine($"UserName: {loginResponse.UserName}");
+                Debug.WriteLine($"UserGuid: {loginResponse.UserId}");
+            }
+
             var cookies = new List<Cookie>();
             if (response.Headers.TryGetValues("Set-Cookie", out var cookieHeaders))
             {
@@ -51,83 +90,131 @@ public static class HttpHelper
                 }
             }
 
-            var tempToken = cookies[0].Value;
-            var newToken = "";
-            if (PostLogin(config, tempToken, out newToken))
-            {
-                token = newToken;
-                result = true;
-            }
-            else
-            {
-                token = string.Empty;
-                result = false;
-            }
-        }
-        else
-        {
-            token = string.Empty;
-            result = false;
-        }
-
-        return result;
-    }
-
-    public static bool PostLogin(IConfigurationRoot config, string tempToken, out string token)
-    {
-        bool result;
-        token = "";
-
-        var uri = new Uri(config["PostLoginUri"]);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, uri);
-        request.Headers.Add("restricted_refresh_token", tempToken);
-
-        HttpResponseMessage response = _httpClient.SendAsync(request).Result;
-
-        if (response.IsSuccessStatusCode)
-        {
-
-            token = response.Content.ToString();
+            tokens.RefreshToken = cookies[0].Value;
             result = true;
         }
         else
         {
-            token = string.Empty;
             result = false;
         }
-
+        
         return result;
     }
 
-    public static AccountsResponse GetAccountIds(IConfigurationRoot config, string token)
+    private Tokens DoGetAccessToken(Tokens tokens)
+    {
+        var uri = new Uri(_configuration["TokenUri"]!);
+        var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        request.Headers.Add("restricted_refresh_token", tokens.RefreshToken);
+
+        var response = _httpClient1.SendAsync(request).Result;
+        if (response.IsSuccessStatusCode)
+        {
+            var responseContent = response.Content.ReadAsStringAsync().Result;
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, _options);
+
+            if (tokenResponse != null)
+            {
+                tokens.AccessToken = tokenResponse.AccessToken.Value;
+            }
+        }
+
+        return tokens;
+    }
+
+    private AccountsResponse DoGetAccounts(Tokens tokens)
     {
         var result = new AccountsResponse();
 
-        try
+        var uri = new Uri(_configuration["AccountsUri"]!);
+        //var request = new HttpRequestMessage(HttpMethod.Post, uri);
+        //request.Headers.Add("Authorization", tokens.AccessToken);
+
+        var graphQl = ConstructGraphQl(tokens.UserGuid);
+
+        var json = JsonSerializer.Serialize(graphQl);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        _httpClient2.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Authorization", tokens.AccessToken);
+
+        _httpClient2.DefaultRequestHeaders.Add("Accept", "application/json");
+        _httpClient2.DefaultRequestHeaders.Add("User-Agent", "YourAppName/1.0");
+
+        var response = _httpClient2.PostAsync(uri, content).Result;
+        if (response.IsSuccessStatusCode)
         {
-            var uri = config["AccountsUri"];
-            Logger.WriteLine($"Uri: {uri}");
-
-            var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", token);
-
-            var response = _httpClient.SendAsync(request).Result;
-            if (response.IsSuccessStatusCode)
+            var responseContent = response.Content.ReadAsStringAsync().Result;
+            var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, _options);
+            if (accountsResponse != null)
             {
-                var content = response.Content.ReadAsStringAsync().Result;
-                result = JsonSerializer.Deserialize<AccountsResponse>(content, _options);
+                result = accountsResponse;
             }
-        }
-        catch (Exception exception)
-        {
-            Logger.WriteLine(exception.ToString());
         }
 
         return result;
     }
 
-    public static MonthlyResponse GetMonthlyUsage(IConfigurationRoot config, string accountId, int year)
+    private GraphQlRequest ConstructGraphQl(string customerGuid)
+    {
+        var request = new GraphQlRequest
+        {
+            OperationName = "Bootstrap",
+            Variables = new Dictionary<string, object>
+            {
+                { "customerId", customerGuid }
+            },
+            Query = @"query Bootstrap($customerId: ID!) {
+  customer_nextV1(id: $customerId) {
+    id
+    customerAccountRelationships {
+      edges {
+        node {
+          account {
+            accountNo
+            id
+            accountSupplyPoints {
+              ...AccountSupplyPoint
+              __typename
+            }
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}
+
+fragment AccountSupplyPoint on AccountSupplyPoint {
+  startDate
+  supplyPoint {
+    sprn
+    fuelType
+    meterTechnicalDetails {
+      meterSerialNumber
+      mode
+      type
+      status
+      __typename
+    }
+    address {
+      addressLines
+      postCode
+      __typename
+    }
+    __typename
+  }
+  __typename
+}"
+        };
+
+        return request;
+    }
+
+    public MonthlyResponse GetMonthlyUsage(IConfigurationRoot config, string accountId, int year)
     {
         var result = new MonthlyResponse();
 
@@ -138,7 +225,7 @@ public static class HttpHelper
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            var response = _httpClient.SendAsync(request).Result;
+            var response = _httpClient1.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
@@ -157,7 +244,7 @@ public static class HttpHelper
         return result!;
     }
 
-    public static DailyResponse GetDailyUsage(IConfigurationRoot config, string accountId, int year, int month)
+    public DailyResponse GetDailyUsage(IConfigurationRoot config, string accountId, int year, int month)
     {
         var result = new DailyResponse();
 
@@ -168,7 +255,7 @@ public static class HttpHelper
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            var response = _httpClient.SendAsync(request).Result;
+            var response = _httpClient1.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
@@ -187,7 +274,7 @@ public static class HttpHelper
         return result;
     }
 
-    public static HalfHourlyResponse GetHalfHourlyUsage(IConfigurationRoot config, string accountId, int year, int month, int day)
+    public HalfHourlyResponse GetHalfHourlyUsage(IConfigurationRoot config, string accountId, int year, int month, int day)
     {
         var result = new HalfHourlyResponse();
 
@@ -198,7 +285,7 @@ public static class HttpHelper
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            var response = _httpClient.SendAsync(request).Result;
+            var response = _httpClient1.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;

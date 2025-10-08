@@ -56,7 +56,7 @@ namespace OvoData
                     }
                 }
 
-                ParentWindow.SetStatusText("Data exported");
+                ParentWindow.SetStatusText("BootstrapData exported");
                 Close();
             }
             catch (Exception exception)
