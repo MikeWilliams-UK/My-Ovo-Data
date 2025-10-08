@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace OvoData.Models.OvoApi;
 
@@ -10,7 +9,4 @@ public class Account
     public string Id { get; set; }
 
     public List<AccountSupplyPoint> AccountSupplyPoints { get; set; }
-
-    [JsonPropertyName("__typename")]
-    public string TypeName { get; set; }
 }

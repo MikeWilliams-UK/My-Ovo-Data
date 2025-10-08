@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace OvoData.Models.OvoApi;
+﻿namespace OvoData.Models.OvoApi;
 
 public class MeterTechnicalDetail
 {
@@ -11,7 +9,4 @@ public class MeterTechnicalDetail
     public string Type { get; set; }
 
     public string Status { get; set; }
-
-    [JsonPropertyName("__typename")]
-    public string Typename { get; set; }
 }

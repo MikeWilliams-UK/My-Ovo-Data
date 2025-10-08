@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace OvoData.Models.OvoApi;
+﻿namespace OvoData.Models.OvoApi;
 
 public class AccountsResponse
 {

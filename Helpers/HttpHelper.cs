@@ -64,6 +64,8 @@ public class HttpHelper
         var requestContent = JsonSerializer.Serialize(loginRequest, _options);
         request.Content = new StringContent(requestContent, Encoding.ASCII, "application/json");
 
+        Logger.WriteLine($"Logging in as {loginRequest.Username}");
+
         var response = _httpClient1.SendAsync(request).Result;
         if (response.IsSuccessStatusCode)
         {
@@ -108,6 +110,15 @@ public class HttpHelper
         var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.Add("restricted_refresh_token", tokens.RefreshToken);
 
+        if (string.IsNullOrEmpty(tokens.AccessToken))
+        {
+            Logger.WriteLine("Obtaining access token");
+        }
+        else
+        {
+            Logger.WriteLine("Refreshing access token");
+        }
+
         var response = _httpClient1.SendAsync(request).Result;
         if (response.IsSuccessStatusCode)
         {
@@ -136,6 +147,8 @@ public class HttpHelper
         graphQl = graphQl.Replace("[[CustomerGuid]]", tokens.UserGuid);
         var content = new StringContent(graphQl, null, "application/json");
         request.Content = content;
+
+        Logger.WriteLine("Obtaining account details");
 
         var response = _httpClient2.SendAsync(request).Result;
         response.EnsureSuccessStatusCode();
