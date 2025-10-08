@@ -90,7 +90,7 @@ namespace OvoData
                 if (_httpHelper.Login(UserName.Text, Password.Password, out Tokens tokens, out var data))
                 {
                     Debug.WriteLine($"{tokens.UserGuid}");
-                    Debug.WriteLine($"{data.CustomerNextV1.customerAccountRelationships.Edges[0].Node.Account.AccountNo}");
+                    Debug.WriteLine($"{data.Data.CustomerNextV1.customerAccountRelationships.Edges[0].Node.Account.AccountNo}");
 
                     Login.IsEnabled = false;
                     Debugger.Break();

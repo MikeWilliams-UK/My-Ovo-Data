@@ -21,6 +21,7 @@ public class HttpHelper
 
     public HttpHelper(IConfigurationRoot configuration)
     {
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         _configuration = configuration;
     }
 
@@ -126,21 +127,15 @@ public class HttpHelper
     {
         var result = new AccountsResponse();
 
-        var uri = new Uri(_configuration["AccountsUri"]!);
-        //var request = new HttpRequestMessage(HttpMethod.Post, uri);
-        //request.Headers.Add("Authorization", tokens.AccessToken);
-
-        var graphQl = ConstructGraphQl(tokens.UserGuid);
-
-        var json = JsonSerializer.Serialize(graphQl);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        _httpClient2.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Authorization", tokens.AccessToken);
-
-        _httpClient2.DefaultRequestHeaders.Add("Accept", "application/json");
-        _httpClient2.DefaultRequestHeaders.Add("User-Agent", "YourAppName/1.0");
-
-        var response = _httpClient2.PostAsync(uri, content).Result;
+        var client = new HttpClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, _configuration["AccountsUri"]!);
+        request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+        var graphQl = "{\r\n  \"operationName\": \"Bootstrap\",\r\n  \"variables\": {\r\n    \"customerId\": \"[[CustomerGuid]]\"\r\n  },\r\n  \"query\": \"query Bootstrap($customerId: ID!) {\\n  customer_nextV1(id: $customerId) {\\n    id\\n    customerAccountRelationships {\\n      edges {\\n        node {\\n          account {\\n            accountNo\\n            id\\n            accountSupplyPoints {\\n              ...AccountSupplyPoint\\n              __typename\\n            }\\n            __typename\\n          }\\n          __typename\\n        }\\n        __typename\\n      }\\n      __typename\\n    }\\n    __typename\\n  }\\n}\\n\\nfragment AccountSupplyPoint on AccountSupplyPoint {\\n  startDate\\n  supplyPoint {\\n    sprn\\n    fuelType\\n    meterTechnicalDetails {\\n      meterSerialNumber\\n      mode\\n      type\\n      status\\n      __typename\\n    }\\n    address {\\n      addressLines\\n      postCode\\n      __typename\\n    }\\n    __typename\\n  }\\n  __typename\\n}\"\r\n}";
+        graphQl = graphQl.Replace("[[CustomerGuid]]", tokens.UserGuid);
+        var content = new StringContent(graphQl, null, "application/json");
+        request.Content = content;
+        var response = client.SendAsync(request).Result;
+        response.EnsureSuccessStatusCode();
         if (response.IsSuccessStatusCode)
         {
             var responseContent = response.Content.ReadAsStringAsync().Result;
