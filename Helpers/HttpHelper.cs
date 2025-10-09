@@ -128,10 +128,6 @@ public class HttpHelper
         if (response.IsSuccessStatusCode)
         {
             var responseContent = response.Content.ReadAsStringAsync().Result;
-            if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
-            {
-                Logger.DumpJson("AccessToken-Response", responseContent);
-            }
             var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, _options);
 
             if (tokenResponse != null)
@@ -152,7 +148,7 @@ public class HttpHelper
         var request = new HttpRequestMessage(HttpMethod.Post, _configuration["AccountsUri"]!);
         request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
-        var graphQl = "{\r\n \"operationName\": \"Bootstrap\",\r\n \"variables\": {\r\n \"customerId\": \"[[CustomerGuid]]\"\r\n },\r\n \"query\": \"query Bootstrap($customerId: ID!) {\\n customer_nextV1(id: $customerId) {\\n id\\n customerAccountRelationships {\\n edges {\\n node {\\n account {\\n accountNo\\n id\\n accountSupplyPoints {\\n ...AccountSupplyPoint\\n }\\n }\\n }\\n }\\n }\\n }\\n}\\n\\nfragment AccountSupplyPoint on AccountSupplyPoint {\\n startDate\\n supplyPoint {\\n sprn\\n fuelType\\n }\\n}\"\r\n}";
+        var graphQl = "{\r\n \"operationName\": \"Bootstrap\",\r\n \"variables\": {\r\n \"customerId\": \"[[CustomerGuid]]\"\r\n },\r\n \"query\": \"query Bootstrap($customerId: ID!) {\\n customer_nextV1(id: $customerId) {\\n id\\n customerAccountRelationships {\\n edges {\\n node {\\n account {\\n accountNo\\n id\\n accountSupplyPoints {\\n ...AccountSupplyPoint\\n }\\n }\\n }\\n }\\n }\\n }\\n}\\n\\nfragment AccountSupplyPoint on AccountSupplyPoint {\\n startDate\\n supplyPoint {\\n fuelType\\n }\\n}\"\r\n}";
         graphQl = graphQl.Replace("[[CustomerGuid]]", tokens.UserGuid);
         var content = new StringContent(graphQl, null, "application/json");
         request.Content = content;
@@ -166,7 +162,7 @@ public class HttpHelper
             var responseContent = response.Content.ReadAsStringAsync().Result;
             if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
             {
-                Logger.DumpJson("Accounts-Response", responseContent);
+                Logger.DumpJson("Accounts-Response",  JsonHelper.Prettify(responseContent));
             }
             var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, _options);
             if (accountsResponse != null)
