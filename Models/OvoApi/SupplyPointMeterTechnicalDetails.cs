@@ -1,6 +1,6 @@
 ﻿namespace OvoData.Models.OvoApi;
 
-public class MeterTechnicalDetail
+public class SupplyPointMeterTechnicalDetails
 {
     public string MeterSerialNumber { get; set; }
 

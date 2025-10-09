@@ -8,7 +8,7 @@ public class SupplyPoint
 
     public string FuelType { get; set; }
 
-    public List<MeterTechnicalDetail> MeterTechnicalDetails { get; set; }
+    public List<SupplyPointMeterTechnicalDetails> MeterTechnicalDetails { get; set; }
 
-    public Address Address { get; set; }
+    public SupplyPointAddress Address { get; set; }
 }

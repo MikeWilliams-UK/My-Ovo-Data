@@ -2,7 +2,7 @@
 
 namespace OvoData.Models.OvoApi;
 
-public class Address
+public class SupplyPointAddress
 {
     public List<string> AddressLines { get; set; }
 

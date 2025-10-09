@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using Microsoft.Extensions.Configuration;
 using OvoData.Models.OvoApi;
 using System;
 using System.Collections.Generic;
@@ -70,6 +71,10 @@ public class HttpHelper
         if (response.IsSuccessStatusCode)
         {
             var responseContent = response.Content.ReadAsStringAsync().Result;
+            if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
+            {
+                Logger.DumpJson("Login-Response", responseContent);
+            }
             var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, _options);
             if (loginResponse != null)
             {
@@ -123,6 +128,10 @@ public class HttpHelper
         if (response.IsSuccessStatusCode)
         {
             var responseContent = response.Content.ReadAsStringAsync().Result;
+            if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
+            {
+                Logger.DumpJson("AccessToken-Response", responseContent);
+            }
             var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, _options);
 
             if (tokenResponse != null)
@@ -155,6 +164,10 @@ public class HttpHelper
         if (response.IsSuccessStatusCode)
         {
             var responseContent = response.Content.ReadAsStringAsync().Result;
+            if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
+            {
+                Logger.DumpJson("Accounts-Response", responseContent);
+            }
             var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, _options);
             if (accountsResponse != null)
             {
