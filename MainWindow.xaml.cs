@@ -21,11 +21,14 @@ namespace OvoData
     {
         private readonly IConfigurationRoot _configuration;
 
-        private string _selectedAccountId = string.Empty;
+        private Tokens _tokens;
+        private OvoAccount _selectedAccount;
 
         private bool _cancelRequested;
 
         private string _stopWhen = string.Empty;
+
+        private HttpHelper _httpHelper;
 
         public MainWindow()
         {
@@ -78,32 +81,27 @@ namespace OvoData
             {
                 WriteToRegistry();
 
-                var details = new LoginRequest
-                {
-                    Username = UserName.Text,
-                    Password = Password.Password,
-                    RememberMe = true
-                };
-
                 SetStatusText("Connecting ...");
 
-                if (HttpHelper.Login(_configuration, details))
+                _httpHelper = new HttpHelper(_configuration);
+
+                if (_httpHelper.Login(UserName.Text, Password.Password, out var tokens, out var ovoAccounts))
                 {
                     Login.IsEnabled = false;
-                    SetStatusText("Obtaining your account(s) ...");
 
-                    var accounts = HttpHelper.GetAccountIds(_configuration);
-
-                    if (accounts.AccountIds.Any())
+                    if (ovoAccounts.Any())
                     {
-                        foreach (var accountId in accounts.AccountIds)
+                        _tokens = tokens;
+
+                        foreach (var ovoAccount in ovoAccounts)
                         {
-                            Accounts.Items.Add(accountId);
+                            Accounts.Items.Add(ovoAccount);
                         }
 
-                        if (accounts.AccountIds.Count == 1)
+                        if (ovoAccounts.Count == 1)
                         {
                             Accounts.SelectedIndex = 0;
+                            SetStatusText($"Account {ovoAccounts[0].Id} selected");
                         }
                         else
                         {
@@ -117,12 +115,12 @@ namespace OvoData
         private void OnSelectionChanged_Accounts(object sender, SelectionChangedEventArgs e)
         {
             if (Accounts.SelectedItems.Count == 1
-                && Accounts.SelectedItem is string accountId)
+                && Accounts.SelectedItem is OvoAccount account)
             {
-                _selectedAccountId = accountId;
+                _selectedAccount = account;
                 SetStateOfControls(true);
 
-                var sqlite = new SqliteHelper(_selectedAccountId);
+                var sqlite = new SqliteHelper(_selectedAccount.Id);
 
                 var info = sqlite.GetInformation();
                 FirstDate.Text = info.FirstDay;
@@ -158,7 +156,7 @@ namespace OvoData
             {
                 var info = new Information
                 {
-                    AccountId = _selectedAccountId,
+                    AccountId = _selectedAccount.Id,
                     FirstDay = FirstDate.Text,
                     LastDay = LastDate.Text
                 };
@@ -171,7 +169,7 @@ namespace OvoData
 
                 var monthsFetched = 0;
 
-                var sqlite = new SqliteHelper(_selectedAccountId);
+                var sqlite = new SqliteHelper(_selectedAccount.Id);
 
                 while (!_cancelRequested)
                 {
@@ -184,7 +182,7 @@ namespace OvoData
 
                     SetStatusText($"Checking Year {year}");
 
-                    var monthly = HttpHelper.GetMonthlyUsage(_configuration, _selectedAccountId, year);
+                    var monthly =  _httpHelper.GetMonthlyUsage(_tokens, _selectedAccount.Id, year);
 
                     int monthlyReadings = 0;
 
@@ -230,8 +228,8 @@ namespace OvoData
                                 || sqlite.CountDaily("Electric", year, month) < lastDay
                                 || sqlite.CountDaily("Gas", year, month) < lastDay)
                             {
-                                SetStatusText($"Fetching Daily Usage for account {_selectedAccountId} - Month {year}-{month:D2}");
-                                var daily = HttpHelper.GetDailyUsage(_configuration, _selectedAccountId, year, month);
+                                SetStatusText($"Fetching Daily Usage for account {_selectedAccount.Id} - Month {year}-{month:D2}");
+                                var daily = _httpHelper.GetDailyUsage(_tokens, _selectedAccount.Id, year, month);
 
                                 if (daily.Electricity != null && daily.Electricity.Data != null)
                                 {
@@ -265,8 +263,8 @@ namespace OvoData
                                     || (sqlite.HasHalfHourly("Gas", year, month, day)
                                         && sqlite.CountHalfHourly("Gas", year, month, day) < 48))
                                 {
-                                    SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccountId} - Day {year}-{month:D2}-{day:D2}");
-                                    var halfHourly = HttpHelper.GetHalfHourlyUsage(_configuration, _selectedAccountId, year, month, day);
+                                    SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccount.Id} - Day {year}-{month:D2}-{day:D2}");
+                                    var halfHourly = _httpHelper.GetHalfHourlyUsage(_tokens, _selectedAccount.Id, year, month, day);
 
                                     if (halfHourly.Electricity != null && halfHourly.Electricity.Data != null)
                                     {
@@ -339,7 +337,7 @@ namespace OvoData
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Account = _selectedAccountId
+                Account = _selectedAccount.Id
             };
             window.ShowDialog();
 
