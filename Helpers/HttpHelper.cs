@@ -19,6 +19,7 @@ public class HttpHelper
     private readonly HttpClient _httpClient2 = new();
     private readonly HttpClient _httpClient3 = new();
     private readonly IConfigurationRoot _configuration;
+    private LoginRequest? _loginRequest = null;
 
     public HttpHelper(IConfigurationRoot configuration)
     {
@@ -40,12 +41,12 @@ public class HttpHelper
         ovoAccounts = new List<OvoAccount>();
         tokens = new Tokens();
 
-        var request = new LoginRequest
+        _loginRequest = new LoginRequest
         {
             Username = username, Password = password
         };
 
-        if (DoLogin(request, out tokens))
+        if (DoLogin(_loginRequest, out tokens))
         {
             tokens = DoGetAccessToken(tokens);
             ovoAccounts = DoGetOvoAccounts(tokens);
@@ -53,6 +54,18 @@ public class HttpHelper
         }
 
         return result;
+    }
+
+    private Tokens LoginAgain()
+    {
+        Tokens tokens = new Tokens();
+
+        if (_loginRequest != null)
+        {
+            DoLogin(_loginRequest, out tokens);
+        }
+
+        return tokens;
     }
 
     private bool DoLogin(LoginRequest loginRequest, out Tokens tokens)
@@ -191,7 +204,11 @@ public class HttpHelper
 
         try
         {
-            if (DateTime.Now > tokens.AccessTokenExpiryTime)
+            if (DateTime.Now > tokens.RefreshTokenExpiryTime)
+            {
+                tokens = LoginAgain();
+            }
+            else if (DateTime.Now > tokens.AccessTokenExpiryTime)
             {
                 tokens = DoGetAccessToken(tokens);
             }
@@ -227,7 +244,11 @@ public class HttpHelper
 
         try
         {
-            if (DateTime.Now > tokens.AccessTokenExpiryTime)
+            if (DateTime.Now > tokens.RefreshTokenExpiryTime)
+            {
+                tokens = LoginAgain();
+            }
+            else if (DateTime.Now > tokens.AccessTokenExpiryTime)
             {
                 tokens = DoGetAccessToken(tokens);
             }
@@ -263,7 +284,11 @@ public class HttpHelper
 
         try
         {
-            if (DateTime.Now > tokens.AccessTokenExpiryTime)
+            if (DateTime.Now > tokens.RefreshTokenExpiryTime)
+            {
+                tokens = LoginAgain();
+            }
+            else if (DateTime.Now > tokens.AccessTokenExpiryTime)
             {
                 tokens = DoGetAccessToken(tokens);
             }
