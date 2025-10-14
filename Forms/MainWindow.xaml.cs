@@ -1,4 +1,12 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Win32;
+using OvoData.Helpers;
+using OvoData.Models;
+using OvoData.Models.Api;
+using OvoData.Models.Api.Login;
+using OvoData.Models.Api.Usage;
+using OvoData.Models.Database;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,15 +14,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Win32;
-using OvoData.Helpers;
-using OvoData.Models;
-using OvoData.Models.Database;
-using OvoData.Models.OvoApi.Account;
-using OvoData.Models.OvoApi.Login;
-using OvoData.Models.OvoApi.Usage;
-using OvoData.Models.OvoApi.Usage.Daily;
 
 namespace OvoData.Forms
 {
@@ -188,7 +187,7 @@ namespace OvoData.Forms
 
                     SetStatusText($"Checking Year {year}");
 
-                    var monthly =  _httpHelper.ObtainMonthlyUsage(_tokens, _selectedAccount.Id, year);
+                    var monthly = _httpHelper.ObtainMonthlyUsage(_tokens, _selectedAccount.Id, year);
 
                     int monthlyReadings = 0;
 

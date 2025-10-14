@@ -1,7 +1,8 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using Microsoft.Extensions.Configuration;
-using OvoData.Models.OvoApi.Account;
-using OvoData.Models.OvoApi.Login;
+﻿using Microsoft.Extensions.Configuration;
+using OvoData.Models.Api;
+using OvoData.Models.Api.Account;
+using OvoData.Models.Api.Login;
+using OvoData.Models.Api.Usage;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,8 +12,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using OvoData.Models.OvoApi.Usage.Daily;
-using OvoData.Models.OvoApi.Usage;
 
 namespace OvoData.Helpers;
 
@@ -46,7 +45,8 @@ public class HttpHelper
 
         _loginRequest = new LoginRequest
         {
-            Username = username, Password = password
+            Username = username,
+            Password = password
         };
 
         if (ExecuteLoginRequest(_loginRequest, out tokens))
@@ -167,7 +167,7 @@ public class HttpHelper
         var request = new HttpRequestMessage(HttpMethod.Post, _configuration["AccountsUri"]!);
         request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
-        var graphQl = "{\r\n \"operationName\": \"Bootstrap\",\r\n \"variables\": {\r\n \"customerId\": \"[[CustomerGuid]]\"\r\n },\r\n \"query\": \"query Bootstrap($customerId: ID!) {\\n customer_nextV1(id: $customerId) {\\n id\\n customerAccountRelationships {\\n edges {\\n node {\\n account {\\n accountNo\\n id\\n accountSupplyPoints {\\n ...AccountSupplyPoint\\n }\\n }\\n }\\n }\\n }\\n }\\n}\\n\\nfragment AccountSupplyPoint on AccountSupplyPoint {\\n startDate\\n supplyPoint {\\n fuelType\\n }\\n}\"\r\n}";
+        var graphQl = "{\r\n \"operationName\": \"Bootstrap\",\r\n \"variables\": {\r\n \"customerId\": \"[[CustomerGuid]]\"\r\n },\r\n \"query\": \"query Bootstrap($customerId: ID!) {\\n customer_nextV1(id: $customerId) {\\n id\\n customerAccountRelationships {\\n edges {\\n node {\\n account {\\n id\\n accountSupplyPoints {\\n ...AccountSupplyPoint\\n }\\n }\\n }\\n }\\n }\\n }\\n}\\n\\nfragment AccountSupplyPoint on AccountSupplyPoint {\\n startDate\\n supplyPoint {\\n fuelType\\n }\\n}\"\r\n}";
         graphQl = graphQl.Replace("[[CustomerGuid]]", tokens.UserGuid);
         var content = new StringContent(graphQl, null, "application/json");
         request.Content = content;
@@ -181,7 +181,7 @@ public class HttpHelper
             var responseContent = response.Content.ReadAsStringAsync().Result;
             if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
             {
-                Logger.DumpJson("Accounts-Response",  JsonHelper.Prettify(responseContent));
+                Logger.DumpJson("Accounts-Response", JsonHelper.Prettify(responseContent));
             }
             var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, JsonSerializerOptions);
             if (accountsResponse != null)
@@ -190,7 +190,7 @@ public class HttpHelper
                 foreach (var edge in edges)
                 {
                     var ovoAccount = new OvoAccount();
-                    ovoAccount.Id = edge.Node.Account.AccountNo;
+                    ovoAccount.Id = edge.Node.Account.Id;
                     var electric = edge.Node.Account.AccountSupplyPoints.Any(s => s.SupplyPoint.FuelType.Equals("ELECTRICITY"));
                     ovoAccount.HasElectric = electric;
 
