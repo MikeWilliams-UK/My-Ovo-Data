@@ -1,10 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Win32;
-using OvoData.Helpers;
-using OvoData.Models;
-using OvoData.Models.Database;
-using OvoData.Models.OvoApi;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,8 +6,17 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Win32;
+using OvoData.Helpers;
+using OvoData.Models;
+using OvoData.Models.Database;
+using OvoData.Models.OvoApi.Account;
+using OvoData.Models.OvoApi.Login;
+using OvoData.Models.OvoApi.Usage;
+using OvoData.Models.OvoApi.Usage.Daily;
 
-namespace OvoData
+namespace OvoData.Forms
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -39,6 +42,10 @@ namespace OvoData
                 .Build();
 
             InitializeComponent();
+
+            _httpHelper = new HttpHelper(_configuration);
+            _tokens = new Tokens();
+            _selectedAccount = new OvoAccount();
         }
 
         private void OnLoaded_MainWindow(object sender, RoutedEventArgs e)
@@ -83,8 +90,6 @@ namespace OvoData
                 WriteToRegistry();
 
                 SetStatusText("Connecting ...");
-
-                _httpHelper = new HttpHelper(_configuration);
 
                 if (_httpHelper.FirstLogin(UserName.Text, Password.Password, out var tokens, out var ovoAccounts))
                 {
@@ -348,7 +353,7 @@ namespace OvoData
             GC.Collect();
         }
 
-        private void SetFirstDay(List<DailyDataItem> data, Information info)
+        private static void SetFirstDay(List<DailyDataItem> data, Information info)
         {
             if (data.Any())
             {
@@ -360,7 +365,7 @@ namespace OvoData
             }
         }
 
-        private void SetFirstMonth(List<MonthlyDataItem> data, int year, Information info)
+        private static void SetFirstMonth(List<MonthlyDataItem> data, int year, Information info)
         {
             if (data.Any())
             {
@@ -372,7 +377,7 @@ namespace OvoData
             }
         }
 
-        private void SetLastDay(List<DailyDataItem> data, Information info)
+        private static void SetLastDay(List<DailyDataItem> data, Information info)
         {
             if (data.Any())
             {
@@ -384,7 +389,7 @@ namespace OvoData
             }
         }
 
-        private void SetLastMonth(List<MonthlyDataItem> data, int year, Information info)
+        private static void SetLastMonth(List<MonthlyDataItem> data, int year, Information info)
         {
             if (data.Any())
             {
@@ -396,7 +401,7 @@ namespace OvoData
             }
         }
 
-        private int LastDayInMonth(int year, int month)
+        private static int LastDayInMonth(int year, int month)
         {
             return DateTime.DaysInMonth(year, month);
         }

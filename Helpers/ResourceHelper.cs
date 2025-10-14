@@ -8,7 +8,7 @@ public static class ResourceHelper
 {
     public static string GetStringResource(string resourceName)
     {
-        string data = null;
+        string data = string.Empty;
 
         var resource = GetBinaryResource(resourceName);
         if (resource != null)
@@ -28,11 +28,11 @@ public static class ResourceHelper
         return data;
     }
 
-    private static Stream GetBinaryResource(string resourceName)
+    private static Stream? GetBinaryResource(string resourceName)
     {
         var assembly = Assembly.GetExecutingAssembly();
 
-        Stream data = null;
+        var data = Stream.Null;
 
         var fullName = string.Empty;
         var count = 0;
@@ -52,11 +52,8 @@ public static class ResourceHelper
             data = assembly.GetManifestResourceStream(fullName);
         }
 
-        if (count != 1)
-        {
-            return null;
-        }
-
-        return data;
+        return count != 1
+            ? Stream.Null
+            : data;
     }
 }

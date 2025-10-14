@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.Extensions.Configuration;
-using OvoData.Models.OvoApi;
+using OvoData.Models.OvoApi.Account;
+using OvoData.Models.OvoApi.Login;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,6 +11,8 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using OvoData.Models.OvoApi.Usage.Daily;
+using OvoData.Models.OvoApi.Usage;
 
 namespace OvoData.Helpers;
 
@@ -48,7 +51,7 @@ public class HttpHelper
 
         if (ExecuteLoginRequest(_loginRequest, out tokens))
         {
-            tokens = ObtainAccessToken(tokens);
+            tokens = ObtainAccessTokens(tokens);
             ovoAccounts = ObtainAccountDetails(tokens);
             result = true;
         }
@@ -122,7 +125,7 @@ public class HttpHelper
         return tokens;
     }
 
-    private Tokens ObtainAccessToken(Tokens tokens)
+    private Tokens ObtainAccessTokens(Tokens tokens)
     {
         var uri = new Uri(_configuration["TokenUri"]!);
         var request = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -148,6 +151,9 @@ public class HttpHelper
                 tokens.RefreshTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.RefreshExpiresIn);
                 tokens.AccessToken = tokenResponse.AccessToken.Value;
                 tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn);
+
+                Debug.WriteLine($"Access  Token Expires at {tokens.AccessTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
+                Debug.WriteLine($"Refresh Token Expires at {tokens.RefreshTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
             }
         }
 
@@ -210,7 +216,7 @@ public class HttpHelper
             }
             else if (DateTime.Now > tokens.AccessTokenExpiryTime)
             {
-                tokens = ObtainAccessToken(tokens);
+                tokens = ObtainAccessTokens(tokens);
             }
 
             var uri = string.Format(_configuration["MonthlyUri"]!, accountId, year);
@@ -250,7 +256,7 @@ public class HttpHelper
             }
             else if (DateTime.Now > tokens.AccessTokenExpiryTime)
             {
-                tokens = ObtainAccessToken(tokens);
+                tokens = ObtainAccessTokens(tokens);
             }
 
             var uri = string.Format(_configuration["DailyUri"]!, accountId, $"{year}-{month:D2}");
@@ -290,7 +296,7 @@ public class HttpHelper
             }
             else if (DateTime.Now > tokens.AccessTokenExpiryTime)
             {
-                tokens = ObtainAccessToken(tokens);
+                tokens = ObtainAccessTokens(tokens);
             }
 
             var uri = string.Format(_configuration["HalfHourlyUri"]!, accountId, $"{year}-{month:D2}-{day:D2}");

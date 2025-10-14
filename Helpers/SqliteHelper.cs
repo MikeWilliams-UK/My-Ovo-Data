@@ -1,11 +1,12 @@
 ﻿using OvoData.Models;
 using OvoData.Models.Database;
-using OvoData.Models.OvoApi;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Text;
+using OvoData.Models.OvoApi.Usage.Daily;
+using OvoData.Models.OvoApi.Usage;
 
 namespace OvoData.Helpers;
 
