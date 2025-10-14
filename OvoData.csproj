@@ -19,15 +19,12 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
         <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
-    <ItemGroup>
-      <None Remove="Notes.txt" />
-    </ItemGroup>
 
     <ItemGroup>
         <Content Include="AppSettings.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="Notes.txt">
+        <Content Include="General Notes.txt">
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </Content>
         <Resource Include="Ovo.ico" />

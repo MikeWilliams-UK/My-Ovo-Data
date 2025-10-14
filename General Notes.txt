@@ -1,0 +1,16 @@
+Scraped from OVO WebSite
+------------------------
+Latest Source for Aidan Timson's (Timmo) python version
+https://github.com/timmo001/ovoenergy
+
+Scraped from Timmo's code
+-------------------------
+https://my.ovoenergy.com/api/v2/auth/login
+https://smartpaym.ovoenergy.com/api/customer-and-account-ids
+https://smartpaymapi.ovoenergy.com/usage/api/monthly/{account_id}?date={yyyy}
+https://smartpaymapi.ovoenergy.com/usage/api/daily/{account_id}?date={yyyy-MM}
+https://smartpaymapi.ovoenergy.com/usage/api/half-hourly/{account_id}?date={yyyy-MM-dd}
+
+https://smartpaymapi.ovoenergy.com/orex/api/plans/{account_id}
+https://smartpaymapi.ovoenergy.com/carbon-api/{account_id}/footprint
+https://smartpaymapi.ovoenergy.com/carbon-bff/carbonintensity

@@ -1,0 +1,132 @@
+﻿#1 "Bootstrap" - Obtaining account details
+==========================================
+{
+  "operationName": "Bootstrap",
+  "variables": {
+    "customerId": "95792782-1b76-49c8-b962-cc747ecdae4a"
+  },
+  "query": "query Bootstrap($customerId: ID!) {{query #1}}"
+}
+
+query #1
+--------
+{
+  customer_nextV1(id: $customerId) {
+    id
+    customerAccountRelationships {
+      edges {
+        node {
+          account {
+            accountNo
+            id
+            accountSupplyPoints {
+              ...AccountSupplyPoint
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment AccountSupplyPoint on AccountSupplyPoint {
+  startDate
+  supplyPoint {
+    fuelType
+  }
+}
+
+#2 Obtaining Meter reads
+========================
+{
+  "operationName": "MeterReads_nextV1",
+  "variables": {
+    "accountId": "{{accountNo}}",
+    "query": {
+      "includeReads": "TOP_VALID_ONLY"
+    }
+  },
+  "query": "query MeterReads_nextV1($accountId: ID!, $query: MeterReadsInputV2!) {{query #2}}"
+}
+
+query #2
+--------
+{
+  account(id: $accountId) {
+    id
+    accountSupplyPoints {
+      ...AccountSupplyPointReads
+    }
+  }
+
+  fragment
+  AccountSupplyPointReads
+  on
+  AccountSupplyPoint {
+    startDate
+    end {
+      date
+    }
+    supplyPoint {
+      timezone
+      sprn
+      meterTechnicalDetails {
+        ...MeterTechnicalDetails
+      }
+      address {
+        addressLines
+        postCode
+      }
+      region
+      fuelType
+      id
+    }
+    meterReads_nextV1(query: $query, last: 10000) {
+      edges {
+        node {
+          reading {
+            ...MeterRead
+          }
+        }
+      }
+    }
+  }
+
+  fragment
+  MeterTechnicalDetails
+  on
+  SupplyPointMeterTechnicalDetails {
+    registers {
+      registerId
+      timingCategory
+      numberOfDigits
+      unitMeasurement
+      registerStartDate
+      registerEndDate
+    }
+    type
+    meterSerialNumber
+    status
+  }
+
+  fragment
+  MeterRead
+  on
+  MeterRead_nextV1 {
+    type
+    date
+    lifecycle
+    source
+    meterSerialNumber
+    ... on ElectricityMeterRead_nextV2 {
+      registers {
+        registerId
+        timingCategory
+        value
+      }
+    }
+    ... on GasMeterRead_nextV2 {
+      value
+    }
+  }
+}
