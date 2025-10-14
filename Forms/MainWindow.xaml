@@ -79,46 +79,64 @@
                 Margin="5"
                 SelectionChanged="OnSelectionChanged_Accounts" />
         </Grid>
-        <Grid Row="2">
+        <Grid
+            Margin="5"
+            VerticalAlignment="Center"
+            Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*" />
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="1*" />
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="1.5*" />
                 <ColumnDefinition Width="1.5*" />
                 <ColumnDefinition Width="1.5*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Margin="5">From:</TextBlock>
-            <TextBlock
-                x:Name="FirstDate"
-                Grid.Column="1"
-                Margin="5" />
-            <TextBlock Grid.Column="2" Margin="5">To:</TextBlock>
-            <TextBlock
-                x:Name="LastDate"
-                Grid.Column="3"
-                Margin="5" />
+            <Grid Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="35" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" VerticalAlignment="Center">From:</TextBlock>
+                <TextBlock
+                    x:Name="FirstDate"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Text="2000-00-00" />
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="35" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" VerticalAlignment="Center">To:</TextBlock>
+                <TextBlock
+                    x:Name="LastDate"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Text="2000-00-00" />
+            </Grid>
             <Button
                 x:Name="Read"
-                Grid.Column="4"
-                Margin="5"
+                Grid.Column="2"
+                Margin="2"
+                VerticalContentAlignment="Center"
                 Click="OnClick_Read"
                 IsEnabled="False">
                 Read
             </Button>
             <Button
                 x:Name="Export"
-                Grid.Column="5"
-                Margin="5"
+                Grid.Column="3"
+                Margin="2"
+                VerticalContentAlignment="Center"
                 Click="OnClick_Export"
                 IsEnabled="False">
                 Export
             </Button>
             <Button
                 x:Name="Cancel"
-                Grid.Column="6"
-                Margin="5"
+                Grid.Column="4"
+                Margin="2"
+                VerticalContentAlignment="Center"
                 Click="OnClick_Cancel"
                 IsEnabled="False">
                 Cancel

@@ -57,7 +57,11 @@ namespace OvoData.Forms
             StopWhen.Items.Add(Constants.NeverStop);
             StopWhen.SelectedIndex = 0;
 
+            FirstDate.Text = string.Empty;
+            LastDate.Text = string.Empty;
+
             SetStatusText("Please log in to your account");
+
         }
 
         private void ReadFromRegistry()
