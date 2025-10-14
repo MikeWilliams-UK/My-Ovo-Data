@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace OvoData
+namespace OvoData.Forms
 {
     /// <summary>
     /// Interaction logic for App.xaml

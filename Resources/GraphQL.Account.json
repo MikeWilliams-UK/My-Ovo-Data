@@ -1,0 +1,7 @@
+{
+    "operationName": "Bootstrap",
+    "variables": {
+        "customerId": "{{userId}}"
+    },
+    "query": "query Bootstrap($customerId: ID!) {{query #1}}"
+}

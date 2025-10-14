@@ -7,7 +7,7 @@
     Title="Your OVO SMART meter data"
     Width="400"
     Height="300"
-    Icon=".\Ovo.ico"
+    Icon="/Images/Ovo.ico"
     Loaded="OnLoaded_MainWindow"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">

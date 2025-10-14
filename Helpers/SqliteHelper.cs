@@ -1,4 +1,5 @@
-﻿using OvoData.Models.Database;
+﻿using OvoData.Models;
+using OvoData.Models.Database;
 using OvoData.Models.OvoApi;
 using System;
 using System.Collections.Generic;

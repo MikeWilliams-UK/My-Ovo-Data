@@ -7,7 +7,7 @@
         <UseWPF>true</UseWPF>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
-        <ApplicationIcon>Ovo.ico</ApplicationIcon>
+        <ApplicationIcon>Images\Ovo.ico</ApplicationIcon>
         <AssemblyVersion>1.0.5</AssemblyVersion>
         <FileVersion>1.0.5.5</FileVersion>
         <SelfContained>true</SelfContained>
@@ -19,15 +19,31 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
         <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
+    <ItemGroup>
+      <None Remove="Resources\GraphQL.Account.json" />
+      <None Remove="Resources\GraphQL.Account.Query.txt" />
+      <None Remove="Resources\GraphQL.Readings.json" />
+      <None Remove="Resources\GraphQL.Readings.Query.txt" />
+    </ItemGroup>
+    <ItemGroup>
+      <Page Remove="Forms\App.xaml" />
+    </ItemGroup>
+    <ItemGroup>
+      <ApplicationDefinition Include="Forms\App.xaml" />
+    </ItemGroup>
 
     <ItemGroup>
         <Content Include="AppSettings.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
-        <Content Include="General Notes.txt">
+        <Content Include="Notes\General Notes.txt">
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </Content>
-        <Resource Include="Ovo.ico" />
+        <EmbeddedResource Include="Resources\GraphQL.Account.json" />
+        <EmbeddedResource Include="Resources\GraphQL.Account.Query.txt" />
+        <EmbeddedResource Include="Resources\GraphQL.Readings.json" />
+        <EmbeddedResource Include="Resources\GraphQL.Readings.Query.txt" />
+        <Resource Include="Images\Ovo.ico" />
     </ItemGroup>
 
     <ItemGroup>

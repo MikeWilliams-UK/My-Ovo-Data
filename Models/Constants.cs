@@ -1,4 +1,4 @@
-﻿namespace OvoData;
+﻿namespace OvoData.Models;
 
 public static class Constants
 {

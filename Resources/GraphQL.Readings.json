@@ -1,0 +1,10 @@
+﻿{
+    "operationName": "MeterReads_nextV1",
+    "variables": {
+        "accountId": "{{accountId}}",
+        "query": {
+            "includeReads": "TOP_VALID_ONLY"
+        }
+    },
+    "query": "query MeterReads_nextV1($accountId: ID!, $query: MeterReadsInputV2!) {{query #2}}"
+}

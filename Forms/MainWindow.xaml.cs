@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Win32;
 using OvoData.Helpers;
+using OvoData.Models;
 using OvoData.Models.Database;
 using OvoData.Models.OvoApi;
 using System;
@@ -85,7 +86,7 @@ namespace OvoData
 
                 _httpHelper = new HttpHelper(_configuration);
 
-                if (_httpHelper.Login(UserName.Text, Password.Password, out var tokens, out var ovoAccounts))
+                if (_httpHelper.FirstLogin(UserName.Text, Password.Password, out var tokens, out var ovoAccounts))
                 {
                     Login.IsEnabled = false;
 
@@ -182,7 +183,7 @@ namespace OvoData
 
                     SetStatusText($"Checking Year {year}");
 
-                    var monthly =  _httpHelper.GetMonthlyUsage(_tokens, _selectedAccount.Id, year);
+                    var monthly =  _httpHelper.ObtainMonthlyUsage(_tokens, _selectedAccount.Id, year);
 
                     int monthlyReadings = 0;
 
@@ -229,7 +230,7 @@ namespace OvoData
                                 || sqlite.CountDaily("Gas", year, month) < lastDay)
                             {
                                 SetStatusText($"Fetching Daily Usage for account {_selectedAccount.Id} - Month {year}-{month:D2}");
-                                var daily = _httpHelper.GetDailyUsage(_tokens, _selectedAccount.Id, year, month);
+                                var daily = _httpHelper.ObtainDailyUsage(_tokens, _selectedAccount.Id, year, month);
 
                                 if (daily.Electricity != null && daily.Electricity.Data != null)
                                 {
@@ -264,7 +265,7 @@ namespace OvoData
                                         && sqlite.CountHalfHourly("Gas", year, month, day) < 48))
                                 {
                                     SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccount.Id} - Day {year}-{month:D2}-{day:D2}");
-                                    var halfHourly = _httpHelper.GetHalfHourlyUsage(_tokens, _selectedAccount.Id, year, month, day);
+                                    var halfHourly = _httpHelper.ObtainHalfHourlyUsage(_tokens, _selectedAccount.Id, year, month, day);
 
                                     if (halfHourly.Electricity != null && halfHourly.Electricity.Data != null)
                                     {

@@ -27,7 +27,7 @@ public class HttpHelper
         _configuration = configuration;
     }
 
-    private static JsonSerializerOptions _options = new JsonSerializerOptions()
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
@@ -35,7 +35,7 @@ public class HttpHelper
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public bool Login(string username, string password, out Tokens tokens, out List<OvoAccount> ovoAccounts)
+    public bool FirstLogin(string username, string password, out Tokens tokens, out List<OvoAccount> ovoAccounts)
     {
         var result = false;
         ovoAccounts = new List<OvoAccount>();
@@ -46,36 +46,24 @@ public class HttpHelper
             Username = username, Password = password
         };
 
-        if (DoLogin(_loginRequest, out tokens))
+        if (ExecuteLoginRequest(_loginRequest, out tokens))
         {
-            tokens = DoGetAccessToken(tokens);
-            ovoAccounts = DoGetOvoAccounts(tokens);
+            tokens = ObtainAccessToken(tokens);
+            ovoAccounts = ObtainAccountDetails(tokens);
             result = true;
         }
 
         return result;
     }
 
-    private Tokens LoginAgain()
-    {
-        Tokens tokens = new Tokens();
-
-        if (_loginRequest != null)
-        {
-            DoLogin(_loginRequest, out tokens);
-        }
-
-        return tokens;
-    }
-
-    private bool DoLogin(LoginRequest loginRequest, out Tokens tokens)
+    private bool ExecuteLoginRequest(LoginRequest loginRequest, out Tokens tokens)
     {
         bool result;
         tokens = new Tokens();
 
         var uri = new Uri(_configuration["LoginUri"]!);
         var request = new HttpRequestMessage(HttpMethod.Post, uri);
-        var requestContent = JsonSerializer.Serialize(loginRequest, _options);
+        var requestContent = JsonSerializer.Serialize(loginRequest, JsonSerializerOptions);
         request.Content = new StringContent(requestContent, Encoding.ASCII, "application/json");
 
         Logger.WriteLine($"Logging in as {loginRequest.Username}");
@@ -86,9 +74,9 @@ public class HttpHelper
             var responseContent = response.Content.ReadAsStringAsync().Result;
             if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
             {
-                Logger.DumpJson("Login-Response", responseContent);
+                Logger.DumpJson("FirstLogin-Response", responseContent);
             }
-            var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, _options);
+            var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, JsonSerializerOptions);
             if (loginResponse != null)
             {
                 tokens.UserGuid = loginResponse.UserId;
@@ -118,11 +106,23 @@ public class HttpHelper
         {
             result = false;
         }
-        
+
         return result;
     }
 
-    private Tokens DoGetAccessToken(Tokens tokens)
+    private Tokens ObtainBothTokens()
+    {
+        Tokens tokens = new Tokens();
+
+        if (_loginRequest != null)
+        {
+            ExecuteLoginRequest(_loginRequest, out tokens);
+        }
+
+        return tokens;
+    }
+
+    private Tokens ObtainAccessToken(Tokens tokens)
     {
         var uri = new Uri(_configuration["TokenUri"]!);
         var request = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -141,7 +141,7 @@ public class HttpHelper
         if (response.IsSuccessStatusCode)
         {
             var responseContent = response.Content.ReadAsStringAsync().Result;
-            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, _options);
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, JsonSerializerOptions);
 
             if (tokenResponse != null)
             {
@@ -154,7 +154,7 @@ public class HttpHelper
         return tokens;
     }
 
-    private List<OvoAccount> DoGetOvoAccounts(Tokens tokens)
+    private List<OvoAccount> ObtainAccountDetails(Tokens tokens)
     {
         var result = new List<OvoAccount>();
 
@@ -177,7 +177,7 @@ public class HttpHelper
             {
                 Logger.DumpJson("Accounts-Response",  JsonHelper.Prettify(responseContent));
             }
-            var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, _options);
+            var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, JsonSerializerOptions);
             if (accountsResponse != null)
             {
                 var edges = accountsResponse.Data.CustomerNextV1.CustomerAccountRelationships.Edges.ToList();
@@ -198,7 +198,7 @@ public class HttpHelper
         return result;
     }
 
-    public MonthlyResponse GetMonthlyUsage(Tokens tokens, string accountId, int year)
+    public MonthlyResponse ObtainMonthlyUsage(Tokens tokens, string accountId, int year)
     {
         var result = new MonthlyResponse();
 
@@ -206,11 +206,11 @@ public class HttpHelper
         {
             if (DateTime.Now > tokens.RefreshTokenExpiryTime)
             {
-                tokens = LoginAgain();
+                tokens = ObtainBothTokens();
             }
             else if (DateTime.Now > tokens.AccessTokenExpiryTime)
             {
-                tokens = DoGetAccessToken(tokens);
+                tokens = ObtainAccessToken(tokens);
             }
 
             var uri = string.Format(_configuration["MonthlyUri"]!, accountId, year);
@@ -225,9 +225,9 @@ public class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson($"{nameof(GetMonthlyUsage)}-{year}", content);
+                    Logger.DumpJson($"{nameof(ObtainMonthlyUsage)}-{year}", content);
                 }
-                result = JsonSerializer.Deserialize<MonthlyResponse>(content, _options);
+                result = JsonSerializer.Deserialize<MonthlyResponse>(content, JsonSerializerOptions);
             }
         }
         catch (Exception exception)
@@ -238,7 +238,7 @@ public class HttpHelper
         return result!;
     }
 
-    public DailyResponse GetDailyUsage(Tokens tokens, string accountId, int year, int month)
+    public DailyResponse ObtainDailyUsage(Tokens tokens, string accountId, int year, int month)
     {
         var result = new DailyResponse();
 
@@ -246,11 +246,11 @@ public class HttpHelper
         {
             if (DateTime.Now > tokens.RefreshTokenExpiryTime)
             {
-                tokens = LoginAgain();
+                tokens = ObtainBothTokens();
             }
             else if (DateTime.Now > tokens.AccessTokenExpiryTime)
             {
-                tokens = DoGetAccessToken(tokens);
+                tokens = ObtainAccessToken(tokens);
             }
 
             var uri = string.Format(_configuration["DailyUri"]!, accountId, $"{year}-{month:D2}");
@@ -265,9 +265,9 @@ public class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson($"{nameof(GetDailyUsage)}-{year}-{month:D2}", content);
+                    Logger.DumpJson($"{nameof(ObtainDailyUsage)}-{year}-{month:D2}", content);
                 }
-                result = JsonSerializer.Deserialize<DailyResponse>(content, _options);
+                result = JsonSerializer.Deserialize<DailyResponse>(content, JsonSerializerOptions);
             }
         }
         catch (Exception exception)
@@ -278,7 +278,7 @@ public class HttpHelper
         return result;
     }
 
-    public HalfHourlyResponse GetHalfHourlyUsage(Tokens tokens, string accountId, int year, int month, int day)
+    public HalfHourlyResponse ObtainHalfHourlyUsage(Tokens tokens, string accountId, int year, int month, int day)
     {
         var result = new HalfHourlyResponse();
 
@@ -286,11 +286,11 @@ public class HttpHelper
         {
             if (DateTime.Now > tokens.RefreshTokenExpiryTime)
             {
-                tokens = LoginAgain();
+                tokens = ObtainBothTokens();
             }
             else if (DateTime.Now > tokens.AccessTokenExpiryTime)
             {
-                tokens = DoGetAccessToken(tokens);
+                tokens = ObtainAccessToken(tokens);
             }
 
             var uri = string.Format(_configuration["HalfHourlyUri"]!, accountId, $"{year}-{month:D2}-{day:D2}");
@@ -305,9 +305,9 @@ public class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson($"{nameof(GetHalfHourlyUsage)}-{year}-{month:D2}-{day:D2}", content);
+                    Logger.DumpJson($"{nameof(ObtainHalfHourlyUsage)}-{year}-{month:D2}-{day:D2}", content);
                 }
-                result = JsonSerializer.Deserialize<HalfHourlyResponse>(content, _options);
+                result = JsonSerializer.Deserialize<HalfHourlyResponse>(content, JsonSerializerOptions);
             }
         }
         catch (Exception exception)

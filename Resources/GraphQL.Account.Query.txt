@@ -1,0 +1,24 @@
+﻿{
+  customer_nextV1(id: $customerId) {
+    customerAccountRelationships {
+      edges {
+        node {
+          account {
+            accountNo
+            id
+            accountSupplyPoints {
+              ...AccountSupplyPoint
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment AccountSupplyPoint on AccountSupplyPoint {
+  startDate
+  supplyPoint {
+    fuelType
+  }
+}
