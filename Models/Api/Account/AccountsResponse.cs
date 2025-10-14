@@ -2,8 +2,8 @@
 
 namespace OvoData.Models.Api.Account;
 
-public class BootstrapData
+public class AccountsResponse
 {
     [JsonPropertyName("data")]
-    public Data Data { get; set; } = new();
+    public AccountsData Data { get; set; } = new();
 }

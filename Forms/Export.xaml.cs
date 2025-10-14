@@ -55,7 +55,7 @@ namespace OvoData.Forms
                     }
                 }
 
-                ParentWindow.SetStatusText("BootstrapData exported");
+                ParentWindow.SetStatusText("Data exported");
                 Close();
             }
             catch (Exception exception)

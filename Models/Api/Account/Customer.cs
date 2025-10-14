@@ -1,8 +1,10 @@
-﻿namespace OvoData.Models.Api.Account;
+﻿using System.Text.Json.Serialization;
+
+namespace OvoData.Models.Api.Account;
 
 public class Customer
 {
-    public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("customerAccountRelationships")]
 
-    public CustomerAccounts CustomerAccountRelationships { get; set; } = new();
+    public CustomerAccounts CustomerAccounts { get; set; } = new();
 }

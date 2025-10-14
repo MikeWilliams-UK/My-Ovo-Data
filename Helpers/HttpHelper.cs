@@ -183,10 +183,10 @@ public class HttpHelper
             {
                 Logger.DumpJson("Accounts-Response", JsonHelper.Prettify(responseContent));
             }
-            var accountsResponse = JsonSerializer.Deserialize<BootstrapData>(responseContent, JsonSerializerOptions);
+            var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, JsonSerializerOptions);
             if (accountsResponse != null)
             {
-                var accounts = accountsResponse.Data.Customer.CustomerAccountRelationships.Accounts.ToList();
+                var accounts = accountsResponse.Data.Customer.CustomerAccounts.Accounts.ToList();
                 foreach (var account in accounts)
                 {
                     var ovoAccount = new OvoAccount();
