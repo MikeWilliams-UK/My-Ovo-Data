@@ -2,5 +2,5 @@
 
 public class BootstrapResponse
 {
-    public AccountsResponse BootstrapData { get; set; } = new();
+    public BootstrapData BootstrapData { get; set; } = new();
 }

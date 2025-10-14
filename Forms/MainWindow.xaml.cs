@@ -8,6 +8,7 @@ using OvoData.Models.Api.Usage;
 using OvoData.Models.Database;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -110,7 +111,6 @@ namespace OvoData.Forms
                         if (ovoAccounts.Count == 1)
                         {
                             Accounts.SelectedIndex = 0;
-                            SetStatusText($"Account {ovoAccounts[0].Id} selected");
                         }
                         else
                         {
@@ -135,7 +135,9 @@ namespace OvoData.Forms
                 FirstDate.Text = info.FirstDay;
                 LastDate.Text = info.LastDay;
 
-                SetStatusText("");
+                SetStatusText($"Account Id:  {_selectedAccount.Id} selected");
+                Debug.WriteLine($"HasElectric: {_selectedAccount.HasElectric}");
+                Debug.WriteLine($"HasGas:      {_selectedAccount.HasGas}");
             }
         }
 

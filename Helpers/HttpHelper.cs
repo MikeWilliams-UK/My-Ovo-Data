@@ -183,19 +183,19 @@ public class HttpHelper
             {
                 Logger.DumpJson("Accounts-Response", JsonHelper.Prettify(responseContent));
             }
-            var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, JsonSerializerOptions);
+            var accountsResponse = JsonSerializer.Deserialize<BootstrapData>(responseContent, JsonSerializerOptions);
             if (accountsResponse != null)
             {
-                var edges = accountsResponse.Data.CustomerNextV1.CustomerAccountRelationships.Edges.ToList();
-                foreach (var edge in edges)
+                var accounts = accountsResponse.Data.Customer.CustomerAccountRelationships.Accounts.ToList();
+                foreach (var account in accounts)
                 {
                     var ovoAccount = new OvoAccount();
-                    ovoAccount.Id = edge.Node.Account.Id;
-                    var electric = edge.Node.Account.AccountSupplyPoints.Any(s => s.SupplyPoint.FuelType.Equals("ELECTRICITY"));
+                    ovoAccount.Id = account.AccountDetails.AccountDetail.Id;
+                    var electric = account.AccountDetails.AccountDetail.SupplyPoints.Any(s => s.SupplyPointDetail.FuelType.Equals("ELECTRICITY"));
                     ovoAccount.HasElectric = electric;
 
-                    var gas = edge.Node.Account.AccountSupplyPoints.Any(s => s.SupplyPoint.FuelType.Equals("GAS"));
-                    ovoAccount.HasElectric = gas;
+                    var gas = account.AccountDetails.AccountDetail.SupplyPoints.Any(s => s.SupplyPointDetail.FuelType.Equals("GAS"));
+                    ovoAccount.HasGas = gas;
                     result.Add(ovoAccount);
                 }
             }
