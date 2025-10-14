@@ -3,7 +3,7 @@
 {
   "operationName": "Bootstrap",
   "variables": {
-    "customerId": "95792782-1b76-49c8-b962-cc747ecdae4a"
+    "customerId": "{{userId}}"
   },
   "query": "query Bootstrap($customerId: ID!) {{query #1}}"
 }
@@ -12,7 +12,6 @@ query #1
 --------
 {
   customer_nextV1(id: $customerId) {
-    id
     customerAccountRelationships {
       edges {
         node {
@@ -59,10 +58,7 @@ query #2
     }
   }
 
-  fragment
-  AccountSupplyPointReads
-  on
-  AccountSupplyPoint {
+  fragment AccountSupplyPointReads on AccountSupplyPoint {
     startDate
     end {
       date
@@ -92,10 +88,7 @@ query #2
     }
   }
 
-  fragment
-  MeterTechnicalDetails
-  on
-  SupplyPointMeterTechnicalDetails {
+  fragment MeterTechnicalDetails on SupplyPointMeterTechnicalDetails {
     registers {
       registerId
       timingCategory
@@ -109,10 +102,7 @@ query #2
     status
   }
 
-  fragment
-  MeterRead
-  on
-  MeterRead_nextV1 {
+  fragment MeterRead on MeterRead_nextV1 {
     type
     date
     lifecycle
