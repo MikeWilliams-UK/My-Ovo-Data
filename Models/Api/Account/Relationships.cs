@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace OvoData.Models.Api.Account;
 
-public class CustomerAccounts
+public class Relationships
 {
     [JsonPropertyName("edges")]
     public List<CustomerAccount> Accounts { get; set; } = new();

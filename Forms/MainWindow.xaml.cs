@@ -135,9 +135,9 @@ namespace OvoData.Forms
                 FirstDate.Text = info.FirstDay;
                 LastDate.Text = info.LastDay;
 
-                SetStatusText($"Account Id:  {_selectedAccount.Id} selected");
-                Debug.WriteLine($"HasElectric: {_selectedAccount.HasElectric}");
-                Debug.WriteLine($"HasGas:      {_selectedAccount.HasGas}");
+                SetStatusText($"Account Id: {_selectedAccount.Id} selected");
+                Debug.WriteLine($"  HasElectric: {_selectedAccount.HasElectric} from {_selectedAccount.ElectricStartDate}");
+                Debug.WriteLine($"  HasGas:      {_selectedAccount.HasGas} from {_selectedAccount.GasStartDate}");
             }
         }
 

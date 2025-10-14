@@ -6,5 +6,5 @@ public class Customer
 {
     [JsonPropertyName("customerAccountRelationships")]
 
-    public CustomerAccounts CustomerAccounts { get; set; } = new();
+    public Relationships Relationships { get; set; } = new();
 }
