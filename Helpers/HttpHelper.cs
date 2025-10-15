@@ -13,6 +13,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows.Forms;
 
 namespace OvoData.Helpers;
 
@@ -21,6 +22,7 @@ public class HttpHelper
     private readonly HttpClient _httpClient1 = new();
     private readonly HttpClient _httpClient2 = new();
     private readonly HttpClient _httpClient3 = new();
+
     private readonly IConfigurationRoot _configuration;
     private LoginRequest? _loginRequest = null;
 
@@ -405,6 +407,11 @@ public class HttpHelper
                                 ovoMeter.Type = meter.Type;
                                 ovoSupplyPoint.ElectricMeters.Add(ovoMeter);
                             }
+
+                            //foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
+                            //{
+                            //    // ToDo Extract Meter readings
+                            //}
                         }
                     }
 
@@ -422,6 +429,11 @@ public class HttpHelper
                                 ovoMeter.Type = meter.Type;
                                 ovoSupplyPoint.GasMeters.Add(ovoMeter);
                             }
+
+                            //foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
+                            //{
+                            //    // ToDo Extract Meter readings
+                            //}
                         }
                     }
 

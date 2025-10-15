@@ -21,5 +21,5 @@ public class Reading
     public string MeterSerialNumber { get; set; } = string.Empty;
 
     [JsonPropertyName("registers")]
-    public List<RegisterValue> Registers { get; set; } = new();
+    public List<RegisterDetails> Registers { get; set; } = new();
 }
