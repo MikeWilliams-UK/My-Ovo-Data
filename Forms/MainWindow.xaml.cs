@@ -149,23 +149,25 @@ namespace OvoData.Forms
 
         private void SetStateOfControls(bool state)
         {
-            Read.IsEnabled = state;
             StopWhen.IsEnabled = state;
-            Export.IsEnabled = state;
 
-            Cancel.IsEnabled = !state;
+            ReadUsege.IsEnabled = state;
+            ExportUsage.IsEnabled = state;
+
+            ReadMeterReadings.IsEnabled = state;
+            ExportReadings.IsEnabled = state;
+
+            CancelUsage.IsEnabled = !state;
+            CancelReadings.IsEnabled = !state;
         }
 
-        private void OnClick_Read(object sender, RoutedEventArgs e)
+        private void OnClick_ReadUsage(object sender, RoutedEventArgs e)
         {
             SetStateOfControls(false);
             _cancelRequested = false;
 
             try
             {
-                var temp = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
-                Debug.WriteLine(temp.Count);
-
                 var info = new Information
                 {
                     AccountId = _selectedAccount.Id,
@@ -336,12 +338,12 @@ namespace OvoData.Forms
             GC.Collect();
         }
 
-        private void OnClick_Cancel(object sender, RoutedEventArgs e)
+        private void OnClick_CancelUsage(object sender, RoutedEventArgs e)
         {
             _cancelRequested = true;
         }
 
-        private void OnClick_Export(object sender, RoutedEventArgs e)
+        private void OnClick_ExportUsage(object sender, RoutedEventArgs e)
         {
             SetStateOfControls(false);
 
@@ -422,6 +424,37 @@ namespace OvoData.Forms
         private static void DoWpfEvents()
         {
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new ThreadStart(delegate { }));
+        }
+
+        private void OnClick_ReadMeterReadings(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var temp = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
+                Debug.WriteLine(temp.Count);
+                Debugger.Break();
+            }
+            catch (Exception exception)
+            {
+                Logger.WriteLine(exception.ToString());
+                MessageBox.Show(exception.ToString(), "Exception");
+            }
+
+            SetStatusText("");
+            SetStateOfControls(true);
+
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        private void OnClick_ExportReadings(object sender, RoutedEventArgs e)
+        {
+            //ToDo:
+        }
+
+        private void OnClick_CancelReadings(object sender, RoutedEventArgs e)
+        {
+            //ToDo:
         }
     }
 }
