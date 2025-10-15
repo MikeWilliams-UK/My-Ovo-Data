@@ -197,7 +197,7 @@ public class HttpHelper
                 var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, JsonSerializerOptions);
                 if (accountsResponse != null)
                 {
-                    var accounts = accountsResponse.AccountsData.Customer.Relationships.Accounts.ToList();
+                    var accounts = accountsResponse.Data.Customer.Relationships.Accounts.ToList();
                     foreach (var account in accounts)
                     {
                         var ovoAccount = new OvoAccount();
@@ -367,11 +367,11 @@ public class HttpHelper
             request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
             //var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Readings.Query.txt").Split(Environment.NewLine));
-            //var graphQl = ResourceHelper.GetStringResource("GraphQL.Readings.json")
+            //var graphQl2 = ResourceHelper.GetStringResource("GraphQL.Readings.json")
             //    .Replace("[[accountId]]", accountId)
             //    .Replace("[[query]]", query);
 
-            var graphQl = "{\r\n    \"operationName\": \"MeterReads_nextV1\",\r\n    \"variables\": {\r\n        \"accountId\": \"[[accountId]]\",\r\n        \"query\": {\r\n            \"includeReads\": \"TOP_VALID_ONLY\"\r\n        }\r\n    },\r\n    \"query\": \"query MeterReads_nextV1($accountId: ID!, $query: MeterReadsInputV2!) {account(id: $accountId) {\\n    id\\n    accountSupplyPoints {\\n      ...AccountSupplyPointReads\\n      \\n    }\\n    \\n  }\\n}\\n\\nfragment AccountSupplyPointReads on AccountSupplyPoint {\\n  startDate\\n  end {\\n    date\\n    \\n  }\\n  supplyPoint {\\n    timezone\\n    sprn\\n    meterTechnicalDetails {\\n      ...MeterTechnicalDetails\\n      \\n    }\\n    address {\\n      addressLines\\n      postCode\\n      \\n    }\\n    region\\n    fuelType\\n    id\\n    \\n  }\\n  meterReads_nextV1(query: $query, last: 10000) {\\n    edges {\\n      node {\\n        reading {\\n          ...MeterRead\\n          \\n        }\\n        \\n      }\\n      \\n    }\\n    \\n  }\\n  \\n}\\n\\nfragment MeterTechnicalDetails on SupplyPointMeterTechnicalDetails {\\n  registers {\\n    registerId\\n    timingCategory\\n    numberOfDigits\\n    unitMeasurement\\n    registerStartDate\\n    registerEndDate\\n    \\n  }\\n  type\\n  meterSerialNumber\\n  status\\n  \\n}\\n\\nfragment MeterRead on MeterRead_nextV1 {\\n  type\\n  date\\n  lifecycle\\n  source\\n  meterSerialNumber\\n  ... on ElectricityMeterRead_nextV2 {\\n    registers {\\n      registerId\\n      timingCategory\\n      value\\n      \\n    }\\n    \\n  }\\n  ... on GasMeterRead_nextV2 {\\n    value\\n    \\n  }\\n  \\n}\"\r\n}";
+            var graphQl = "{\r\n \"operationName\": \"MeterReads_nextV1\",\r\n \"variables\": {\r\n \"accountId\": \"[[accountId]]\",\r\n \"query\": {\r\n \"includeReads\": \"TOP_VALID_ONLY\"\r\n }\r\n },\r\n \"query\": \"query MeterReads_nextV1($accountId: ID!, $query: MeterReadsInputV2!) {account(id: $accountId) {\\n id\\n accountSupplyPoints {\\n ...AccountSupplyPointReads\\n \\n }\\n \\n }\\n}\\n\\nfragment AccountSupplyPointReads on AccountSupplyPoint {\\n startDate\\n end {\\n date\\n \\n }\\n supplyPoint {\\n timezone\\n sprn\\n meterTechnicalDetails {\\n ...MeterTechnicalDetails\\n \\n }\\n address {\\n addressLines\\n postCode\\n \\n }\\n region\\n fuelType\\n id\\n \\n }\\n meterReads_nextV1(query: $query, last: 10000) {\\n edges {\\n node {\\n reading {\\n ...MeterRead\\n \\n }\\n \\n }\\n \\n }\\n \\n }\\n \\n}\\n\\nfragment MeterTechnicalDetails on SupplyPointMeterTechnicalDetails {\\n registers {\\n registerId\\n timingCategory\\n numberOfDigits\\n unitMeasurement\\n registerStartDate\\n registerEndDate\\n \\n }\\n type\\n meterSerialNumber\\n status\\n \\n}\\n\\nfragment MeterRead on MeterRead_nextV1 {\\n type\\n date\\n lifecycle\\n source\\n meterSerialNumber\\n ... on ElectricityMeterRead_nextV2 {\\n registers {\\n registerId\\n timingCategory\\n value\\n \\n }\\n \\n }\\n ... on GasMeterRead_nextV2 {\\n value\\n \\n }\\n \\n}\"\r\n}";
             graphQl = graphQl.Replace("[[accountId]]", accountId);
 
             var content = new StringContent(graphQl, null, "application/json");

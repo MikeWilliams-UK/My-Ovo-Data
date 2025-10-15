@@ -5,5 +5,5 @@ namespace OvoData.Models.Api.Account;
 public class AccountsResponse
 {
     [JsonPropertyName("data")]
-    public AccountsData AccountsData { get; set; } = new();
+    public Data Data { get; set; } = new();
 }

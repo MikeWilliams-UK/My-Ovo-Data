@@ -6,7 +6,7 @@ namespace OvoData.Models.Api.Readings;
 public class MeterTechnicalDetail
 {
     [JsonPropertyName("registers")]
-    public List<Register> Registers { get; set; } = new();
+    public List<RegisterDetails> RegistersDetails { get; set; } = new();
 
     [JsonPropertyName("type")]
     public string Type { get; set; } = string.Empty;

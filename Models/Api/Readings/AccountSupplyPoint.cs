@@ -14,5 +14,5 @@ public class AccountSupplyPoint
     public SupplyPoint SupplyPoint { get; set; } = new();
 
     [JsonPropertyName("meterReads_nextV1")]
-    public MeterReadsNextV1 MeterReadsNextV1 { get; set; } = new();
+    public MeterReadings MeterReadsNextV1 { get; set; } = new();
 }

@@ -2,7 +2,7 @@
 
 namespace OvoData.Models.Api.Account;
 
-public class AccountsData
+public class Data
 {
     [JsonPropertyName("customer_nextV1")]
     public Customer Customer { get; set; } = new();

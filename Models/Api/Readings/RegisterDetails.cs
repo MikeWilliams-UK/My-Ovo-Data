@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace OvoData.Models.Api.Readings;
 
-public class Register
+public class RegisterDetails
 {
     [JsonPropertyName("registerId")]
     public string RegisterId { get; set; } = string.Empty;
@@ -22,7 +22,4 @@ public class Register
 
     [JsonPropertyName("registerEndDate")]
     public DateTime? RegisterEndDate { get; set; } = null;
-
-    [JsonPropertyName("value")]
-    public string Value { get; set; } = string.Empty;
 }
