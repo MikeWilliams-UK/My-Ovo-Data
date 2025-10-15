@@ -38,9 +38,9 @@
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </Content>
         <EmbeddedResource Include="Resources\GraphQL\Accounts.json" />
-        <EmbeddedResource Include="Resources\GraphQL\Accounts.Query.txt" />
+        <EmbeddedResource Include="Resources\GraphQL\Accounts.query" />
         <EmbeddedResource Include="Resources\GraphQL\Readings.json" />
-        <EmbeddedResource Include="Resources\GraphQL\Readings.Query.txt" />
+        <EmbeddedResource Include="Resources\GraphQL\Readings.query" />
         <Resource Include="Images\Ovo.ico" />
     </ItemGroup>
 

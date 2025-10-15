@@ -2,7 +2,6 @@
 using Microsoft.Win32;
 using OvoData.Helpers;
 using OvoData.Models;
-using OvoData.Models.Api;
 using OvoData.Models.Api.Login;
 using OvoData.Models.Api.Usage;
 using OvoData.Models.Database;
@@ -62,7 +61,6 @@ namespace OvoData.Forms
             LastDate.Text = string.Empty;
 
             SetStatusText("Please log in to your account");
-
         }
 
         private void ReadFromRegistry()

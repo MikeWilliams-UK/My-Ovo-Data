@@ -1,4 +1,4 @@
-﻿namespace OvoData.Models.Api;
+﻿namespace OvoData.Models;
 
 public class OvoAccount
 {

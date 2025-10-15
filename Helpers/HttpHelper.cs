@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using OvoData.Models;
-using OvoData.Models.Api;
 using OvoData.Models.Api.Account;
 using OvoData.Models.Api.Login;
 using OvoData.Models.Api.Readings;
@@ -178,7 +177,7 @@ public class HttpHelper
             var request = new HttpRequestMessage(HttpMethod.Post, _configuration["AccountsUri"]!);
             request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
-            var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Accounts.Query.txt").Split(Environment.NewLine));
+            var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Accounts.query").Split(Environment.NewLine));
             var graphQl = ResourceHelper.GetStringResource("GraphQL.Accounts.json");
             graphQl = graphQl.Replace("[[customerGuid]]", tokens.UserGuid).Replace("[[query]]", query);
 
@@ -350,9 +349,9 @@ public class HttpHelper
         return result;
     }
 
-    public List<OvoMeterReading> ObtainMeterReadings(Tokens tokens, string accountId)
+    public List<OvoSupplyPoint> ObtainMeterReadings(Tokens tokens, string accountId)
     {
-        List<OvoMeterReading> result = [];
+        List<OvoSupplyPoint> result = [];
 
         try
         {
@@ -368,9 +367,8 @@ public class HttpHelper
             var request = new HttpRequestMessage(HttpMethod.Post, _configuration["ReadingsUri"]!);
             request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
-            var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Readings.Query.txt").Split(Environment.NewLine));
+            var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Readings.query").Split(Environment.NewLine));
             var graphQl = ResourceHelper.GetStringResource("GraphQL.Readings.json");
-
             graphQl = graphQl.Replace("[[accountId]]", accountId).Replace("[[query]]", query);
 
             var content = new StringContent(graphQl, null, "application/json");
@@ -390,7 +388,44 @@ public class HttpHelper
                 var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
                 if (readingsResponse != null)
                 {
+                    var ovoSupplyPoint = new OvoSupplyPoint();
+
                     Debug.WriteLine(readingsResponse.Data.Account.Id);
+                    var electric = readingsResponse.Data.Account.AccountSupplyPoints
+                        .Where(s => s.SupplyPoint.FuelType.Equals("ELECTRICITY"))
+                        .ToList();
+                    if (electric.Any())
+                    {
+                        foreach (var accountSupplyPoint in electric)
+                        {
+                            foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
+                            {
+                                var ovoMeter = new OvoMeter();
+                                ovoMeter.Id = meter.MeterSerialNumber;
+                                ovoMeter.Type = meter.Type;
+                                ovoSupplyPoint.ElectricMeters.Add(ovoMeter);
+                            }
+                        }
+                    }
+
+                    var gas = readingsResponse.Data.Account.AccountSupplyPoints
+                        .Where(s => s.SupplyPoint.FuelType.Equals("GAS"))
+                        .ToList();
+                    if (gas.Any())
+                    {
+                        foreach (var accountSupplyPoint in gas)
+                        {
+                            foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
+                            {
+                                var ovoMeter = new OvoMeter();
+                                ovoMeter.Id = meter.MeterSerialNumber;
+                                ovoMeter.Type = meter.Type;
+                                ovoSupplyPoint.GasMeters.Add(ovoMeter);
+                            }
+                        }
+                    }
+
+                    result.Add(ovoSupplyPoint);
                 }
             }
         }

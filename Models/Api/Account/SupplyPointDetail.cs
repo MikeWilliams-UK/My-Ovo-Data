@@ -2,6 +2,5 @@
 
 public class SupplyPointDetail
 {
-
     public string FuelType { get; set; } = string.Empty;
 }
