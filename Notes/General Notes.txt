@@ -14,3 +14,13 @@ https://smartpaymapi.ovoenergy.com/usage/api/half-hourly/{account_id}?date={yyyy
 https://smartpaymapi.ovoenergy.com/orex/api/plans/{account_id}
 https://smartpaymapi.ovoenergy.com/carbon-api/{account_id}/footprint
 https://smartpaymapi.ovoenergy.com/carbon-bff/carbonintensity
+
+
+JSON Converters
+https://json2csharp.com/
+
+JSON Formatter
+https://codebeautify.org/jsonviewer
+
+GraphQL
+https://jsonformatter.org/graphql-formatter
