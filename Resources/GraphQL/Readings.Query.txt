@@ -18,10 +18,6 @@ fragment AccountSupplyPointReads on AccountSupplyPoint {
     meterTechnicalDetails {
       ...MeterTechnicalDetails
     }
-    address {
-      addressLines
-      postCode
-    }
     region
     fuelType
     id

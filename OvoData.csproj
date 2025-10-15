@@ -37,10 +37,10 @@
         <Content Include="Notes\General Notes.txt">
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </Content>
-        <EmbeddedResource Include="Resources\GraphQL.Accounts.json" />
-        <EmbeddedResource Include="Resources\GraphQL.Accounts.Query.txt" />
-        <EmbeddedResource Include="Resources\GraphQL.Readings.json" />
-        <EmbeddedResource Include="Resources\GraphQL.Readings.Query.txt" />
+        <EmbeddedResource Include="Resources\GraphQL\Accounts.json" />
+        <EmbeddedResource Include="Resources\GraphQL\Accounts.Query.txt" />
+        <EmbeddedResource Include="Resources\GraphQL\Readings.json" />
+        <EmbeddedResource Include="Resources\GraphQL\Readings.Query.txt" />
         <Resource Include="Images\Ovo.ico" />
     </ItemGroup>
 

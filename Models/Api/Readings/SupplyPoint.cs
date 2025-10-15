@@ -14,9 +14,6 @@ public class SupplyPoint
     [JsonPropertyName("meterTechnicalDetails")]
     public List<MeterTechnicalDetail> MeterTechnicalDetails { get; set; } = new();
 
-    [JsonPropertyName("address")]
-    public Address Address { get; set; }
-
     [JsonPropertyName("region")]
     public string Region { get; set; } = string.Empty;
 
