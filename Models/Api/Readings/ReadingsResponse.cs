@@ -2,5 +2,5 @@
 
 public class ReadingsResponse
 {
-    // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
+    public Data Data { get; set; } = new();
 }

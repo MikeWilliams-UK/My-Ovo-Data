@@ -1,4 +1,4 @@
-﻿{
+﻿query MeterReads_nextV1($accountId: ID!, $query: MeterReadsInputV2!) {
   account(id: $accountId) {
     id
     accountSupplyPoints {
@@ -6,7 +6,10 @@
     }
   }
 
-  fragment AccountSupplyPointReads on AccountSupplyPoint {
+  fragment
+  AccountSupplyPointReads
+  on
+  AccountSupplyPoint {
     startDate
     end {
       date
@@ -36,7 +39,10 @@
     }
   }
 
-  fragment MeterTechnicalDetails on SupplyPointMeterTechnicalDetails {
+  fragment
+  MeterTechnicalDetails
+  on
+  SupplyPointMeterTechnicalDetails {
     registers {
       registerId
       timingCategory
@@ -50,7 +56,10 @@
     status
   }
 
-  fragment MeterRead on MeterRead_nextV1 {
+  fragment
+  MeterRead
+  on
+  MeterRead_nextV1 {
     type
     date
     lifecycle

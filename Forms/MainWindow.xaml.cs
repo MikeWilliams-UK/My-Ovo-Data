@@ -165,6 +165,9 @@ namespace OvoData.Forms
 
             try
             {
+                var temp = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
+                Debug.WriteLine(temp.Count);
+
                 var info = new Information
                 {
                     AccountId = _selectedAccount.Id,
