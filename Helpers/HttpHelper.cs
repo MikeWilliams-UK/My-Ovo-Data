@@ -178,8 +178,10 @@ public class HttpHelper
             var request = new HttpRequestMessage(HttpMethod.Post, _configuration["AccountsUri"]!);
             request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
-            var graphQl = "{\r\n \"operationName\": \"Bootstrap\",\r\n \"variables\": {\r\n \"customerId\": \"[[CustomerGuid]]\"\r\n },\r\n \"query\": \"query Bootstrap($customerId: ID!) {\\n customer_nextV1(id: $customerId) {\\n id\\n customerAccountRelationships {\\n edges {\\n node {\\n account {\\n id\\n accountSupplyPoints {\\n ...AccountSupplyPoint\\n }\\n }\\n }\\n }\\n }\\n }\\n}\\n\\nfragment AccountSupplyPoint on AccountSupplyPoint {\\n startDate\\n supplyPoint {\\n fuelType\\n }\\n}\"\r\n}";
-            graphQl = graphQl.Replace("[[CustomerGuid]]", tokens.UserGuid);
+            var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Accounts.Query.txt").Split(Environment.NewLine));
+            var graphQl = ResourceHelper.GetStringResource("GraphQL.Accounts.json");
+            graphQl = graphQl.Replace("[[customerGuid]]", tokens.UserGuid).Replace("[[query]]", query);
+
             var content = new StringContent(graphQl, null, "application/json");
             request.Content = content;
 
@@ -366,13 +368,10 @@ public class HttpHelper
             var request = new HttpRequestMessage(HttpMethod.Post, _configuration["ReadingsUri"]!);
             request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
-            //var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Readings.Query.txt").Split(Environment.NewLine));
-            //var graphQl2 = ResourceHelper.GetStringResource("GraphQL.Readings.json")
-            //    .Replace("[[accountId]]", accountId)
-            //    .Replace("[[query]]", query);
+            var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Readings.Query.txt").Split(Environment.NewLine));
+            var graphQl = ResourceHelper.GetStringResource("GraphQL.Readings.json");
 
-            var graphQl = "{\r\n \"operationName\": \"MeterReads_nextV1\",\r\n \"variables\": {\r\n \"accountId\": \"[[accountId]]\",\r\n \"query\": {\r\n \"includeReads\": \"TOP_VALID_ONLY\"\r\n }\r\n },\r\n \"query\": \"query MeterReads_nextV1($accountId: ID!, $query: MeterReadsInputV2!) {account(id: $accountId) {\\n id\\n accountSupplyPoints {\\n ...AccountSupplyPointReads\\n \\n }\\n \\n }\\n}\\n\\nfragment AccountSupplyPointReads on AccountSupplyPoint {\\n startDate\\n end {\\n date\\n \\n }\\n supplyPoint {\\n timezone\\n sprn\\n meterTechnicalDetails {\\n ...MeterTechnicalDetails\\n \\n }\\n address {\\n addressLines\\n postCode\\n \\n }\\n region\\n fuelType\\n id\\n \\n }\\n meterReads_nextV1(query: $query, last: 10000) {\\n edges {\\n node {\\n reading {\\n ...MeterRead\\n \\n }\\n \\n }\\n \\n }\\n \\n }\\n \\n}\\n\\nfragment MeterTechnicalDetails on SupplyPointMeterTechnicalDetails {\\n registers {\\n registerId\\n timingCategory\\n numberOfDigits\\n unitMeasurement\\n registerStartDate\\n registerEndDate\\n \\n }\\n type\\n meterSerialNumber\\n status\\n \\n}\\n\\nfragment MeterRead on MeterRead_nextV1 {\\n type\\n date\\n lifecycle\\n source\\n meterSerialNumber\\n ... on ElectricityMeterRead_nextV2 {\\n registers {\\n registerId\\n timingCategory\\n value\\n \\n }\\n \\n }\\n ... on GasMeterRead_nextV2 {\\n value\\n \\n }\\n \\n}\"\r\n}";
-            graphQl = graphQl.Replace("[[accountId]]", accountId);
+            graphQl = graphQl.Replace("[[accountId]]", accountId).Replace("[[query]]", query);
 
             var content = new StringContent(graphQl, null, "application/json");
             request.Content = content;

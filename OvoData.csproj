@@ -20,8 +20,6 @@
         <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
     <ItemGroup>
-      <None Remove="Resources\GraphQL.Account.json" />
-      <None Remove="Resources\GraphQL.Account.Query.txt" />
       <None Remove="Resources\GraphQL.Readings.json" />
       <None Remove="Resources\GraphQL.Readings.Query.txt" />
     </ItemGroup>
@@ -39,8 +37,8 @@
         <Content Include="Notes\General Notes.txt">
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </Content>
-        <EmbeddedResource Include="Resources\GraphQL.Account.json" />
-        <EmbeddedResource Include="Resources\GraphQL.Account.Query.txt" />
+        <EmbeddedResource Include="Resources\GraphQL.Accounts.json" />
+        <EmbeddedResource Include="Resources\GraphQL.Accounts.Query.txt" />
         <EmbeddedResource Include="Resources\GraphQL.Readings.json" />
         <EmbeddedResource Include="Resources\GraphQL.Readings.Query.txt" />
         <Resource Include="Images\Ovo.ico" />

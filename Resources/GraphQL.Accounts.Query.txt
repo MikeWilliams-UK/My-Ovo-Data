@@ -1,4 +1,4 @@
-﻿{
+﻿query Bootstrap($customerId: ID!) {
   customer_nextV1(id: $customerId) {
     customerAccountRelationships {
       edges {

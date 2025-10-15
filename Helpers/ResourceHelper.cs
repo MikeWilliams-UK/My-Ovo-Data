@@ -15,14 +15,6 @@ public static class ResourceHelper
         {
             var textStreamReader = new StreamReader(resource);
             data = textStreamReader.ReadToEnd();
-
-            // Repair any "broken" line feeds to Windows style
-            var etx = (char)3;
-            var temp = data.Replace("\r\n", $"{etx}");
-            temp = temp.Replace("\n", $"{etx}");
-            temp = temp.Replace("\r", $"{etx}");
-            var lines = temp.Split(etx);
-            data = string.Join(Environment.NewLine, lines);
         }
 
         return data;
