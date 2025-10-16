@@ -203,16 +203,23 @@ public class HttpHelper
                     var accounts = accountsResponse.Data.Customer.Relationships.Accounts.ToList();
                     foreach (var account in accounts)
                     {
-                        var ovoAccount = new OvoAccount();
-                        ovoAccount.Id = account.Details.AccountDetail.Id;
-                        var electric = account.Details.AccountDetail.SupplyPoints.Where(s => s.SupplyPointDetail.FuelType.Equals("ELECTRICITY")).ToList();
+                        var ovoAccount = new OvoAccount
+                        {
+                            Id = account.Details.AccountDetail.Id
+                        };
+
+                        var electric = account.Details.AccountDetail.SupplyPoints
+                            .Where(s => s.SupplyPointDetail.FuelType.Equals(Constants.FuelTypeElectricity))
+                            .ToList();
                         if (electric.Any())
                         {
                             ovoAccount.HasElectric = true;
                             ovoAccount.ElectricStartDate = electric[0].StartDate;
                         }
 
-                        var gas = account.Details.AccountDetail.SupplyPoints.Where(s => s.SupplyPointDetail.FuelType.Equals("GAS")).ToList();
+                        var gas = account.Details.AccountDetail.SupplyPoints
+                            .Where(s => s.SupplyPointDetail.FuelType.Equals(Constants.FuelTypeGas))
+                            .ToList();
                         if (gas.Any())
                         {
                             ovoAccount.HasGas = true;
@@ -394,14 +401,14 @@ public class HttpHelper
                     Debug.WriteLine(readingsResponse.Data.Account.Id);
 
                     var electric = readingsResponse.Data.Account.AccountSupplyPoints
-                        .Where(s => s.SupplyPoint.FuelType.Equals("ELECTRICITY"))
+                        .Where(s => s.SupplyPoint.FuelType.Equals(Constants.FuelTypeElectricity))
                         .ToList();
                     if (electric.Any())
                     {
                         var ovoSupplyPoint = new OvoSupplyPoint
                         {
                             Sprn = electric[0].SupplyPoint.Sprn,
-                            Type = "ELECTRICITY"
+                            Type = Constants.FuelTypeElectricity
                         };
 
                         foreach (var accountSupplyPoint in electric)
@@ -442,7 +449,7 @@ public class HttpHelper
                                     ovoMeter.Registers.Add(ovoMeterRegister);
                                 }
 
-                                ovoSupplyPoint.ElectricMeters.Add(ovoMeter);
+                                ovoSupplyPoint.Meters.Add(ovoMeter);
                             }
 
                             foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
@@ -464,7 +471,7 @@ public class HttpHelper
                                     ovoMeterReading.Value = node.MeterReadingValues[0].Value;
                                 }
 
-                                ovoSupplyPoint.ElectricReadings.Add(ovoMeterReading);
+                                ovoSupplyPoint.Readings.Add(ovoMeterReading);
                             }
 
                             result.Add(ovoSupplyPoint);
@@ -472,14 +479,14 @@ public class HttpHelper
                     }
 
                     var gas = readingsResponse.Data.Account.AccountSupplyPoints
-                        .Where(s => s.SupplyPoint.FuelType.Equals("GAS"))
+                        .Where(s => s.SupplyPoint.FuelType.Equals(Constants.FuelTypeGas))
                         .ToList();
                     if (gas.Any())
                     {
                         var ovoSupplyPoint = new OvoSupplyPoint
                         {
                             Sprn = gas[0].SupplyPoint.Sprn,
-                            Type = "GAS"
+                            Type = Constants.FuelTypeGas
                         };
 
                         foreach (var accountSupplyPoint in gas)
@@ -520,7 +527,7 @@ public class HttpHelper
                                     ovoMeter.Registers.Add(ovoMeterRegister);
                                 }
 
-                                ovoSupplyPoint.GasMeters.Add(ovoMeter);
+                                ovoSupplyPoint.Meters.Add(ovoMeter);
                             }
 
                             foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
@@ -536,7 +543,7 @@ public class HttpHelper
                                     Value = node.Value
                                 };
 
-                                ovoSupplyPoint.GasReadings.Add(ovoMeterReading);
+                                ovoSupplyPoint.Readings.Add(ovoMeterReading);
                             }
                         }
 

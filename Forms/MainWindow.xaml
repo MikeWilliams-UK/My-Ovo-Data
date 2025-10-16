@@ -138,7 +138,7 @@
                 VerticalAlignment="Center"
                 Click="OnClick_ReadUsage"
                 IsEnabled="False"
-                ToolTip="Read Usage">
+                ToolTip="Get Usage for selected account">
                 Get Usage
             </Button>
             <Button
@@ -149,7 +149,7 @@
                 VerticalAlignment="Center"
                 Click="OnClick_ExportUsage"
                 IsEnabled="False"
-                ToolTip="Export Usage">
+                ToolTip="Export Usage for selected account">
                 Export Usage
             </Button>
             <Button
@@ -202,7 +202,7 @@
                 VerticalAlignment="Center"
                 Click="OnClick_ReadMeterReadings"
                 IsEnabled="False"
-                ToolTip="Read Meter Readings">
+                ToolTip="Get Meter Readings for selected account">
                 Get Readings
             </Button>
             <Button
@@ -213,7 +213,7 @@
                 VerticalAlignment="Center"
                 Click="OnClick_ExportReadings"
                 IsEnabled="False"
-                ToolTip="Export Meter Readings">
+                ToolTip="Export Meter Readings for selected account">
                 Export Readings
             </Button>
         </Grid>

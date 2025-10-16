@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
-
-namespace OvoData.Helpers;
+﻿namespace OvoData.Helpers;
 
 public static class Constants
 {
@@ -13,4 +11,7 @@ public static class Constants
 
     public const string ZuluDateTimeFormat = "yyyy-MM-ddTHH:mm:ss.000Z";
     public const string ShortDateFormat = "yyyy-MM-dd";
+
+    public const string FuelTypeElectricity = "ELECTRICITY";
+    public const string FuelTypeGas = "GAS";
 }

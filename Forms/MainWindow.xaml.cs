@@ -285,6 +285,7 @@ namespace OvoData.Forms
                                     {
                                         sqlite.UpsertHalfHourly("Electric", halfHourly.Electricity.Data);
                                     }
+
                                     if (halfHourly.Gas != null && halfHourly.Gas.Data != null)
                                     {
                                         sqlite.UpsertHalfHourly("Gas", halfHourly.Gas.Data);
@@ -331,7 +332,14 @@ namespace OvoData.Forms
                 Logger.WriteLine(exception.ToString());
                 MessageBox.Show(exception.ToString(), "Exception");
             }
+            finally
+            {
+                ClearDown();
+            }
+        }
 
+        private void ClearDown()
+        {
             SetStatusText("");
             SetStateOfControls(true);
 
@@ -355,11 +363,7 @@ namespace OvoData.Forms
                 Account = _selectedAccount.Id
             };
             window.ShowDialog();
-
-            SetStateOfControls(true);
-
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+            ClearDown();
         }
 
         private static void SetFirstDay(List<DailyDataItem> data, Information info)
@@ -432,6 +436,9 @@ namespace OvoData.Forms
             try
             {
                 var temp = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
+
+                //ToDo: Write the data to SQLite
+
                 Debug.WriteLine(temp.Count);
                 Debugger.Break();
             }
@@ -440,22 +447,15 @@ namespace OvoData.Forms
                 Logger.WriteLine(exception.ToString());
                 MessageBox.Show(exception.ToString(), "Exception");
             }
-
-            SetStatusText("");
-            SetStateOfControls(true);
-
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+            finally
+            {
+                ClearDown();
+            }
         }
 
         private void OnClick_ExportReadings(object sender, RoutedEventArgs e)
         {
-            //ToDo:
-        }
-
-        private void OnClick_CancelReadings(object sender, RoutedEventArgs e)
-        {
-            //ToDo:
+            //ToDo: Export the data from SQLite
         }
     }
 }

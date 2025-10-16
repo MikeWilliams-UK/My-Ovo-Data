@@ -14,6 +14,8 @@ public class OvoMeterRegister
 
     public override string ToString()
     {
-        return $"{StartDate} - {EndDate} - {TimingCategory} - {UnitOfMeasurement}";
+        return EndDate is null
+            ? $"{StartDate:yyyy-MM-dd} - {TimingCategory} - {UnitOfMeasurement}"
+            : $"{StartDate:yyyy-MM-dd} - {EndDate:yyyy-MM-dd} - {TimingCategory} - {UnitOfMeasurement}";
     }
 }
