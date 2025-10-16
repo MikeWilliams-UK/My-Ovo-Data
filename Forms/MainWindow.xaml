@@ -80,145 +80,148 @@
                 Margin="5"
                 SelectionChanged="OnSelectionChanged_Accounts" />
         </Grid>
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="4.5*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="4.5*" />
+                <ColumnDefinition Width="6*" />
+                <ColumnDefinition Width="6*" />
                 <ColumnDefinition Width="4*" />
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="4*" />
-                <ColumnDefinition Width="5*" />
-                <ColumnDefinition Width="5*" />
-                <ColumnDefinition Width="5*" />
             </Grid.ColumnDefinitions>
             <ComboBox
                 x:Name="StopWhen"
                 Grid.Column="0"
                 Grid.ColumnSpan="7"
-                Margin="5"
                 IsEnabled="False"
                 SelectionChanged="OnSelectionChanged_StopWhen" />
             <!--  Usage  -->
             <TextBlock
                 Grid.Row="1"
                 Grid.Column="0"
+                Margin="2"
                 VerticalAlignment="Center">
                 From:
             </TextBlock>
             <TextBlock
-                x:Name="FirstDate"
+                x:Name="FirstUsageDate"
                 Grid.Row="1"
                 Grid.Column="1"
+                Margin="2"
                 VerticalAlignment="Center"
-                Text="2000-00-00" />
+                Text="0000-00-00" />
             <TextBlock
                 Grid.Row="1"
                 Grid.Column="2"
+                Margin="2"
                 VerticalAlignment="Center">
                 To:
             </TextBlock>
             <TextBlock
-                x:Name="LastDate"
+                x:Name="LastUsageDate"
                 Grid.Row="1"
                 Grid.Column="3"
+                Margin="2"
                 VerticalAlignment="Center"
-                Text="2000-00-00" />
+                Text="0000-00-00" />
             <Button
-                x:Name="ReadUsege"
+                x:Name="ReadUsage"
                 Grid.Row="1"
                 Grid.Column="4"
                 Margin="2"
-                VerticalContentAlignment="Center"
+                VerticalAlignment="Center"
                 Click="OnClick_ReadUsage"
                 IsEnabled="False"
                 ToolTip="Read Usage">
-                Read Usage
+                Get Usage
             </Button>
             <Button
                 x:Name="ExportUsage"
                 Grid.Row="1"
                 Grid.Column="5"
                 Margin="2"
-                VerticalContentAlignment="Center"
+                VerticalAlignment="Center"
                 Click="OnClick_ExportUsage"
-                IsEnabled="False">
+                IsEnabled="False"
+                ToolTip="Export Usage">
                 Export Usage
             </Button>
             <Button
-                x:Name="CancelUsage"
+                x:Name="CancelOperations"
                 Grid.Row="1"
+                Grid.RowSpan="2"
                 Grid.Column="6"
-                Margin="2"
+                Margin="2,2,0,2"
                 VerticalContentAlignment="Center"
-                Click="OnClick_CancelUsage"
-                IsEnabled="False">
-                Cancel Usage
+                Click="OnClick_CancelOperations"
+                IsEnabled="False"
+                ToolTip="Cancel Operation(s)">
+                Cancel
             </Button>
 
             <!--  Meter Readings  -->
             <TextBlock
                 Grid.Row="2"
                 Grid.Column="0"
+                Margin="2"
                 VerticalAlignment="Center">
                 From:
             </TextBlock>
             <TextBlock
-                x:Name="FirstReading"
+                x:Name="FirstReadingDate"
                 Grid.Row="2"
                 Grid.Column="1"
+                Margin="2"
                 VerticalAlignment="Center"
-                Text="0000-00-01" />
+                Text="0000-00-00" />
             <TextBlock
                 Grid.Row="2"
                 Grid.Column="2"
+                Margin="2"
                 VerticalAlignment="Center">
                 To:
             </TextBlock>
             <TextBlock
-                x:Name="LastReading"
+                x:Name="LastReadingDate"
                 Grid.Row="2"
                 Grid.Column="3"
+                Margin="2"
                 VerticalAlignment="Center"
-                Text="2000-00-00" />
+                Text="0000-00-00" />
             <Button
                 x:Name="ReadMeterReadings"
                 Grid.Row="2"
                 Grid.Column="4"
                 Margin="2"
-                VerticalContentAlignment="Center"
+                VerticalAlignment="Center"
                 Click="OnClick_ReadMeterReadings"
-                IsEnabled="False">
-                Read Meter
+                IsEnabled="False"
+                ToolTip="Read Meter Readings">
+                Get Readings
             </Button>
             <Button
                 x:Name="ExportReadings"
                 Grid.Row="2"
                 Grid.Column="5"
                 Margin="2"
-                VerticalContentAlignment="Center"
+                VerticalAlignment="Center"
                 Click="OnClick_ExportReadings"
-                IsEnabled="False">
-                Export Meter
-            </Button>
-            <Button
-                x:Name="CancelReadings"
-                Grid.Row="2"
-                Grid.Column="6"
-                Margin="2"
-                VerticalContentAlignment="Center"
-                Click="OnClick_CancelReadings"
-                IsEnabled="False">
-                Cancel Meter
+                IsEnabled="False"
+                ToolTip="Export Meter Readings">
+                Export Readings
             </Button>
         </Grid>
         <TextBlock
             x:Name="Status"
             Grid.Row="5"
             Padding="5"
+            VerticalAlignment="Center"
             Background="LightGray">
             Status ...
         </TextBlock>

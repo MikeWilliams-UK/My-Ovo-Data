@@ -57,8 +57,10 @@ namespace OvoData.Forms
             StopWhen.Items.Add(Constants.NeverStop);
             StopWhen.SelectedIndex = 0;
 
-            FirstDate.Text = string.Empty;
-            LastDate.Text = string.Empty;
+            FirstUsageDate.Text = string.Empty;
+            LastUsageDate.Text = string.Empty;
+            FirstReadingDate.Text = string.Empty;
+            LastReadingDate.Text = string.Empty;
 
             SetStatusText("Please log in to your account");
         }
@@ -130,8 +132,8 @@ namespace OvoData.Forms
                 var sqlite = new SqliteHelper(_selectedAccount.Id);
 
                 var info = sqlite.GetInformation();
-                FirstDate.Text = info.FirstDay;
-                LastDate.Text = info.LastDay;
+                FirstUsageDate.Text = info.FirstDay;
+                LastUsageDate.Text = info.LastDay;
 
                 SetStatusText($"Account Id: {_selectedAccount.Id} selected");
                 Debug.WriteLine($"  HasElectric: {_selectedAccount.HasElectric} from {_selectedAccount.ElectricStartDate}");
@@ -151,14 +153,13 @@ namespace OvoData.Forms
         {
             StopWhen.IsEnabled = state;
 
-            ReadUsege.IsEnabled = state;
+            ReadUsage.IsEnabled = state;
             ExportUsage.IsEnabled = state;
 
             ReadMeterReadings.IsEnabled = state;
             ExportReadings.IsEnabled = state;
 
-            CancelUsage.IsEnabled = !state;
-            CancelReadings.IsEnabled = !state;
+            CancelOperations.IsEnabled = !state;
         }
 
         private void OnClick_ReadUsage(object sender, RoutedEventArgs e)
@@ -171,8 +172,8 @@ namespace OvoData.Forms
                 var info = new Information
                 {
                     AccountId = _selectedAccount.Id,
-                    FirstDay = FirstDate.Text,
-                    LastDay = LastDate.Text
+                    FirstDay = FirstUsageDate.Text,
+                    LastDay = LastUsageDate.Text
                 };
 
                 var thisYear = DateTime.Now.Year;
@@ -322,8 +323,8 @@ namespace OvoData.Forms
 
                 sqlite.UpsertInformation(info);
 
-                FirstDate.Text = info.FirstDay;
-                LastDate.Text = info.LastDay;
+                FirstUsageDate.Text = info.FirstDay;
+                LastUsageDate.Text = info.LastDay;
             }
             catch (Exception exception)
             {
@@ -338,7 +339,7 @@ namespace OvoData.Forms
             GC.Collect();
         }
 
-        private void OnClick_CancelUsage(object sender, RoutedEventArgs e)
+        private void OnClick_CancelOperations(object sender, RoutedEventArgs e)
         {
             _cancelRequested = true;
         }

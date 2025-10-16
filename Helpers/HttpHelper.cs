@@ -7,13 +7,13 @@ using OvoData.Models.Api.Usage;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Windows.Forms;
 
 namespace OvoData.Helpers;
 
@@ -383,6 +383,7 @@ public class HttpHelper
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = response.Content.ReadAsStringAsync().Result;
+
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
                     Logger.DumpJson("MeterReadings-Response", JsonHelper.Prettify(responseContent));
@@ -390,28 +391,83 @@ public class HttpHelper
                 var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
                 if (readingsResponse != null)
                 {
-                    var ovoSupplyPoint = new OvoSupplyPoint();
-
                     Debug.WriteLine(readingsResponse.Data.Account.Id);
+
                     var electric = readingsResponse.Data.Account.AccountSupplyPoints
                         .Where(s => s.SupplyPoint.FuelType.Equals("ELECTRICITY"))
                         .ToList();
                     if (electric.Any())
                     {
+                        var ovoSupplyPoint = new OvoSupplyPoint
+                        {
+                            Sprn = electric[0].SupplyPoint.Sprn,
+                            Type = "ELECTRICITY"
+                        };
+
                         foreach (var accountSupplyPoint in electric)
                         {
                             foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
                             {
-                                var ovoMeter = new OvoMeter();
-                                ovoMeter.Id = meter.MeterSerialNumber;
-                                ovoMeter.Type = meter.Type;
+                                var ovoMeter = new OvoMeter
+                                {
+                                    SerialNumber = meter.MeterSerialNumber,
+                                    Type = meter.Type,
+                                    Status = meter.Status
+                                };
+
+                                foreach (var detail in meter.MeterRegisters)
+                                {
+                                    var ovoMeterRegister = new OvoMeterRegister
+                                    {
+                                        TimingCategory = detail.TimingCategory,
+                                        UnitOfMeasurement = detail.UnitMeasurement,
+                                        Id = detail.RegisterId
+                                    };
+
+                                    if (DateTime.TryParseExact(detail.RegisterStartDate,
+                                            Constants.ZuluDateTimeFormat,
+                                            CultureInfo.InvariantCulture,
+                                            DateTimeStyles.AssumeUniversal, out var startDate))
+                                    {
+                                        ovoMeterRegister.StartDate = startDate;
+                                    }
+                                    if (DateTime.TryParseExact(detail.RegisterEndDate,
+                                            Constants.ZuluDateTimeFormat,
+                                            CultureInfo.InvariantCulture,
+                                            DateTimeStyles.AssumeUniversal, out var endDate))
+                                    {
+                                        ovoMeterRegister.EndDate = endDate;
+                                    }
+
+                                    ovoMeter.Registers.Add(ovoMeterRegister);
+                                }
+
                                 ovoSupplyPoint.ElectricMeters.Add(ovoMeter);
                             }
 
-                            //foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
-                            //{
-                            //    // ToDo Extract Meter readings
-                            //}
+                            foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
+                            {
+                                var node = edge.MeterNode.MeterReadingData;
+                                var ovoMeterReading = new OvoMeterReading
+                                {
+                                    Type = node.Type,
+                                    Date = DateTime.ParseExact(node.Date, Constants.ShortDateFormat, CultureInfo.InvariantCulture),
+                                    LifeCycle = node.Lifecycle,
+                                    Source = node.Source,
+                                    MeterSerialNumber = node.MeterSerialNumber
+                                };
+
+                                if (node.MeterReadingValues.Count > 0)
+                                {
+                                    ovoMeterReading.TimingCategory = node.MeterReadingValues[0].TimingCategory;
+                                    ovoMeterReading.RegisterId = node.MeterReadingValues[0].RegisterId;
+                                    ovoMeterReading.Value = node.MeterReadingValues[0].Value;
+                                }
+
+                                ovoSupplyPoint.ElectricReadings.Add(ovoMeterReading);
+                            }
+
+                            result.Add(ovoSupplyPoint);
                         }
                     }
 
@@ -420,32 +476,82 @@ public class HttpHelper
                         .ToList();
                     if (gas.Any())
                     {
+                        var ovoSupplyPoint = new OvoSupplyPoint
+                        {
+                            Sprn = gas[0].SupplyPoint.Sprn,
+                            Type = "GAS"
+                        };
+
                         foreach (var accountSupplyPoint in gas)
                         {
                             foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
                             {
-                                var ovoMeter = new OvoMeter();
-                                ovoMeter.Id = meter.MeterSerialNumber;
-                                ovoMeter.Type = meter.Type;
+                                var ovoMeter = new OvoMeter
+                                {
+                                    SerialNumber = meter.MeterSerialNumber,
+                                    Type = meter.Type,
+                                    Status = meter.Status
+                                };
+
+                                foreach (var detail in meter.MeterRegisters)
+                                {
+                                    var ovoMeterRegister = new OvoMeterRegister
+                                    {
+                                        TimingCategory = detail.TimingCategory,
+                                        UnitOfMeasurement = detail.UnitMeasurement,
+                                        Id = detail.RegisterId
+                                    };
+
+                                    if (DateTime.TryParseExact(detail.RegisterStartDate,
+                                            Constants.ZuluDateTimeFormat,
+                                            CultureInfo.InvariantCulture,
+                                            DateTimeStyles.AssumeUniversal, out var startDate))
+                                    {
+                                        ovoMeterRegister.StartDate = startDate;
+                                    }
+                                    if (DateTime.TryParseExact(detail.RegisterEndDate,
+                                            Constants.ZuluDateTimeFormat,
+                                            CultureInfo.InvariantCulture,
+                                            DateTimeStyles.AssumeUniversal, out var endDate))
+                                    {
+                                        ovoMeterRegister.EndDate = endDate;
+                                    }
+
+                                    ovoMeter.Registers.Add(ovoMeterRegister);
+                                }
+
                                 ovoSupplyPoint.GasMeters.Add(ovoMeter);
                             }
 
-                            //foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
-                            //{
-                            //    // ToDo Extract Meter readings
-                            //}
-                        }
-                    }
+                            foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
+                            {
+                                var node = edge.MeterNode.MeterReadingData;
+                                var ovoMeterReading = new OvoMeterReading
+                                {
+                                    Type = node.Type,
+                                    Date = DateTime.ParseExact(node.Date, Constants.ShortDateFormat, CultureInfo.InvariantCulture),
+                                    LifeCycle = node.Lifecycle,
+                                    Source = node.Source,
+                                    MeterSerialNumber = node.MeterSerialNumber,
+                                    Value = node.Value
+                                };
 
-                    result.Add(ovoSupplyPoint);
+                                ovoSupplyPoint.GasReadings.Add(ovoMeterReading);
+                            }
+                        }
+
+                        result.Add(ovoSupplyPoint);
+                    }
                 }
             }
         }
         catch (Exception exception)
         {
             Logger.WriteLine(exception.ToString());
+            Debugger.Break();
         }
 
+        Debugger.Break();
         return result;
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace OvoData.Helpers;
+﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
+
+namespace OvoData.Helpers;
 
 public static class Constants
 {
@@ -8,4 +10,7 @@ public static class Constants
     public const string StopAfterTwoMonths = "This Month & Last Month";
     public const string StopAfterThisYear = "This Year";
     public const string NeverStop = "All Time";
+
+    public const string ZuluDateTimeFormat = "yyyy-MM-ddTHH:mm:ss.000Z";
+    public const string ShortDateFormat = "yyyy-MM-dd";
 }

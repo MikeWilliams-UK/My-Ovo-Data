@@ -5,14 +5,14 @@ namespace OvoData.Models.Api.Readings;
 
 public class SupplyPoint
 {
-    [JsonPropertyName("timezone")]
-    public string Timezone { get; set; } = string.Empty;
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("sprn")]
     public string Sprn { get; set; } = string.Empty;
 
-    [JsonPropertyName("meterTechnicalDetails")]
-    public List<MeterTechnicalDetail> MeterTechnicalDetails { get; set; } = new();
+    [JsonPropertyName("timezone")]
+    public string Timezone { get; set; } = string.Empty;
 
     [JsonPropertyName("region")]
     public string Region { get; set; } = string.Empty;
@@ -20,6 +20,6 @@ public class SupplyPoint
     [JsonPropertyName("fuelType")]
     public string FuelType { get; set; } = string.Empty;
 
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("meterTechnicalDetails")]
+    public List<MeterTechnicalDetail> MeterTechnicalDetails { get; set; } = new();
 }

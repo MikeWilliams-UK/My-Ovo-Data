@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace OvoData.Models.Api.Readings;
 
-public class RegisterDetails
+public class MeterRegister
 {
     [JsonPropertyName("registerId")]
     public string RegisterId { get; set; } = string.Empty;
@@ -18,8 +18,8 @@ public class RegisterDetails
     public string UnitMeasurement { get; set; } = string.Empty;
 
     [JsonPropertyName("registerStartDate")]
-    public DateTime RegisterStartDate { get; set; } = DateTime.MinValue;
+    public string RegisterStartDate { get; set; } = string.Empty;
 
     [JsonPropertyName("registerEndDate")]
-    public DateTime? RegisterEndDate { get; set; } = null;
+    public string RegisterEndDate { get; set; } = string.Empty;
 }

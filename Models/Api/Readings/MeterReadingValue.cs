@@ -2,7 +2,7 @@
 
 namespace OvoData.Models.Api.Readings;
 
-public class RegisterValue
+public class MeterReadingValue
 {
     [JsonPropertyName("registerId")]
     public string RegisterId { get; set; } = string.Empty;

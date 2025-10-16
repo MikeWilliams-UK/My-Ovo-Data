@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace OvoData.Models.Api.Readings;
 
-public class Reading
+public class MeterReadingData
 {
     [JsonPropertyName("type")]
     public string Type { get; set; } = string.Empty;
@@ -20,6 +20,13 @@ public class Reading
     [JsonPropertyName("meterSerialNumber")]
     public string MeterSerialNumber { get; set; } = string.Empty;
 
+    /// <summary>
+    /// If meter type is GAS then value lives here
+    /// If meter type is ELECTRIC then value lives in the first register value
+    /// </summary>
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = string.Empty;
+
     [JsonPropertyName("registers")]
-    public List<RegisterDetails> Registers { get; set; } = new();
+    public List<MeterReadingValue> MeterReadingValues { get; set; } = [];
 }

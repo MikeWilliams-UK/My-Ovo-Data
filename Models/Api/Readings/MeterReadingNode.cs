@@ -2,8 +2,8 @@
 
 namespace OvoData.Models.Api.Readings;
 
-public class Node
+public class MeterReadingNode
 {
     [JsonPropertyName("reading")]
-    public Reading Reading { get; set; } = new();
+    public MeterReadingData MeterReadingData { get; set; } = new();
 }
