@@ -1,0 +1,38 @@
+﻿CREATE TABLE SupplyPoint (
+    Sprn     STRING PRIMARY KEY
+                    UNIQUE
+                    NOT NULL,
+    FuelType STRING NOT NULL
+);
+
+CREATE TABLE Meter (
+    SerialNumber STRING PRIMARY KEY
+                        UNIQUE
+                        NOT NULL,
+    FuelType     STRING NOT NULL,
+    MeterType    STRING NOT NULL,
+    Status       STRING NOT NULL
+);
+
+CREATE TABLE MeterRegister (
+    StartDate         DATE   PRIMARY KEY
+                             NOT NULL,
+    EndDate           DATE,
+    FuelType          STRING NOT NULL,
+    Id                STRING NOT NULL,
+    TimingCategory    STRING NOT NULL,
+    UnitOfMeasurement STRING NOT NULL
+);
+
+CREATE TABLE Reading (
+    Date              DATE   PRIMARY KEY
+                             NOT NULL,
+    MeterSerialNumber STRING NOT NULL,
+    FuelType          STRING NOT NULL,
+    LifeCycle         STRING NOT NULL,
+    RegisterId        STRING NOT NULL,
+    Source            STRING NOT NULL,
+    TimingCategory    STRING NOT NULL,
+    Type              STRING NOT NULL,
+    Value             DOUBLE NOT NULL
+);
