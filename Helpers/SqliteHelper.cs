@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Text;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace OvoData.Helpers;
 
@@ -22,10 +23,17 @@ public class SqliteHelper
 
         _dataFile = Path.Combine(folder, $"{account}.db");
 
+        // Create database if required
         if (!File.Exists(_dataFile))
         {
             SQLiteConnection.CreateFile(_dataFile);
-            CreateTables();
+            CreateBaseTables();
+        }
+
+        // Add readings tables if required
+        if (!TableExists("SupplyPointsInformation"))
+        {
+            CreateReadingsTables();
         }
     }
 
@@ -367,35 +375,60 @@ public class SqliteHelper
         }
     }
 
-    private void CreateTables()
+    private void CreateBaseTables()
     {
-        var tables = new List<string>
-        {
-            "CREATE TABLE Information (AccountId STRING PRIMARY KEY NOT NULL UNIQUE, FirstMonth STRING, LastMonth STRING, FirstDay STRING, LastDay STRING);",
-            "CREATE TABLE MonthlyElectric (Month STRING PRIMARY KEY NOT NULL UNIQUE, Mxpn STRING, Consumption DOUBLE, Cost DOUBLE);",
-            "CREATE INDEX Idx_MonthlyElectric ON MonthlyElectric (Month ASC);",
-            "CREATE TABLE MonthlyGas (Month STRING PRIMARY KEY NOT NULL UNIQUE, Mxpn STRING, Consumption DOUBLE, Cost DOUBLE);",
-            "CREATE INDEX Idx_MonthlyGas ON MonthlyGas (Month ASC);",
-            "CREATE TABLE DailyElectric (Day STRING PRIMARY KEY NOT NULL UNIQUE, Consumption DOUBLE, Cost DOUBLE, Standing DOUBLE, AnyTime DOUBLE, Peak DOUBLE, OffPeak DOUBLE, HasHhData BOOLEAN);",
-            "CREATE INDEX Idx_DailyElectric ON DailyElectric (Day ASC);",
-            "CREATE TABLE DailyGas (Day STRING PRIMARY KEY NOT NULL UNIQUE, Consumption DOUBLE, Cost DOUBLE, Standing DOUBLE, AnyTime DOUBLE, Peak DOUBLE, OffPeak DOUBLE, HasHhData BOOLEAN);",
-            "CREATE INDEX Idx_DailyGas ON DailyGas (Day ASC);",
-            "CREATE TABLE HalfHourlyElectric (StartTime STRING PRIMARY KEY UNIQUE NOT NULL, Consumption DOUBLE);",
-            "CREATE INDEX Idx_HalfHourlyElectric ON HalfHourlyElectric (StartTime ASC);",
-            "CREATE TABLE HalfHourlyGas (StartTime STRING PRIMARY KEY UNIQUE NOT NULL, Consumption DOUBLE);",
-            "CREATE INDEX Idx_HalfHourlyGas ON HalfHourlyGas (StartTime ASC);"
-        };
+        var tables = ResourceHelper.GetStringResource("SQLite.Create-Initial-Database.sql").Split(Environment.NewLine);
 
         using (var connection = GetConnection())
         {
             foreach (var table in tables)
             {
-                if (!string.IsNullOrEmpty(table))
+                if (!string.IsNullOrEmpty(table) && !table.StartsWith("-"))
                 {
                     var command = new SQLiteCommand(table, connection);
                     command.ExecuteNonQuery();
                 }
             }
         }
+    }
+
+    private void CreateReadingsTables()
+    {
+        var tables = ResourceHelper.GetStringResource("SQLite.Add-Meter-Readings-Tables.sql").Split(Environment.NewLine);
+
+        using (var connection = GetConnection())
+        {
+            foreach (var table in tables)
+            {
+                if (!string.IsNullOrEmpty(table) && !table.StartsWith("-"))
+                {
+                    var command = new SQLiteCommand(table, connection);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+    }
+
+    private bool TableExists(string tableName)
+    {
+        bool result = false;
+
+        using (var connection = GetConnection())
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("SELECT name");
+            stringBuilder.AppendLine("FROM sqlite_master");
+            stringBuilder.AppendLine($"WHERE type='{tableName}'");
+
+            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                result = true;
+            }
+        }
+
+        return result;
     }
 }

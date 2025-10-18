@@ -1,0 +1,12 @@
+﻿CREATE TABLE SupplyPointsInformation (AccountId STRING PRIMARY KEY UNIQUE NOT NULL, FirstGasReading DATE, LastGasReading DATE, FirstElectricReading DATE, LastElectricReading DATE);
+
+CREATE TABLE SupplyPoint (Sprn STRING PRIMARY KEY UNIQUE NOT NULL, FuelType STRING NOT NULL);
+
+CREATE TABLE Meter (SerialNumber STRING PRIMARY KEY UNIQUE NOT NULL, FuelType STRING NOT NULL, MeterType STRING NOT NULL, Status STRING NOT NULL);
+CREATE INDEX Idx_Meter ON Meter (SerialNumber ASC);
+
+CREATE TABLE MeterRegister (StartDate DATE PRIMARY KEY NOT NULL, EndDate DATE, FuelType STRING NOT NULL, Id STRING NOT NULL, TimingCategory STRING NOT NULL, UnitOfMeasurement STRING NOT NULL);
+CREATE INDEX Idx_MeterRegister ON MeterRegister (StartDate ASC);
+
+CREATE TABLE Reading (Date DATE PRIMARY KEY NOT NULL, MeterSerialNumber STRING NOT NULL, FuelType STRING NOT NULL, LifeCycle STRING NOT NULL, RegisterId STRING NOT NULL, Source STRING NOT NULL, TimingCategory STRING NOT NULL, Type STRING NOT NULL, Value DOUBLE NOT NULL);
+CREATE INDEX Idx_Reading ON Reading (Date ASC, MeterSerialNumber ASC);
