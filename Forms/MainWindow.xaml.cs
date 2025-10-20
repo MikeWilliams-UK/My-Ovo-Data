@@ -2,10 +2,8 @@
 using Microsoft.Win32;
 using OvoData.Helpers;
 using OvoData.Models.Api.Login;
-using OvoData.Models.Api.Usage;
 using OvoData.Models.Database;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -55,11 +53,6 @@ namespace OvoData.Forms
             StopWhen.Items.Add(Constants.StopAfterThisYear);
             StopWhen.Items.Add(Constants.NeverStop);
             StopWhen.SelectedIndex = 0;
-
-            FirstUsageDate.Text = string.Empty;
-            LastUsageDate.Text = string.Empty;
-            FirstReadingDate.Text = string.Empty;
-            LastReadingDate.Text = string.Empty;
 
             SetStatusText("Please log in to your account");
         }
@@ -129,10 +122,7 @@ namespace OvoData.Forms
                 SetStateOfControls(true);
 
                 var sqlite = new SqLiteHelper(_selectedAccount.Id);
-
-                var info = sqlite.GetInformation();
-                FirstUsageDate.Text = info.FirstDay;
-                LastUsageDate.Text = info.LastDay;
+                AccountInformation.ItemsSource = sqlite.GetUsageInformation();
 
                 SetStatusText($"Account Id: {_selectedAccount.Id} selected");
                 Debug.WriteLine($"  HasElectric: {_selectedAccount.HasElectric} from {_selectedAccount.ElectricStartDate}");
@@ -168,13 +158,6 @@ namespace OvoData.Forms
 
             try
             {
-                var info = new Information
-                {
-                    AccountId = _selectedAccount.Id,
-                    FirstDay = FirstUsageDate.Text,
-                    LastDay = LastUsageDate.Text
-                };
-
                 var thisYear = DateTime.Now.Year;
                 var thisMonth = DateTime.Now.Month;
                 var thisDay = DateTime.Now.Day;
@@ -205,9 +188,6 @@ namespace OvoData.Forms
                         sqlite.UpsertMonthly("Electric", monthly.Electricity.Data);
 
                         monthlyReadings += monthly.Electricity.Data.Count;
-
-                        SetFirstMonth(monthly.Electricity.Data, year, info);
-                        SetLastMonth(monthly.Electricity.Data, year, info);
                     }
 
                     if (monthly.Gas != null && monthly.Gas.Data != null)
@@ -215,9 +195,6 @@ namespace OvoData.Forms
                         sqlite.UpsertMonthly("Gas", monthly.Gas.Data);
 
                         monthlyReadings += monthly.Gas.Data.Count;
-
-                        SetFirstMonth(monthly.Gas.Data, year, info);
-                        SetLastMonth(monthly.Gas.Data, year, info);
                     }
 
                     if (monthlyReadings > 0)
@@ -248,17 +225,11 @@ namespace OvoData.Forms
                                 if (daily.Electricity != null && daily.Electricity.Data != null)
                                 {
                                     sqlite.UpsertDaily("Electric", daily.Electricity.Data);
-
-                                    SetFirstDay(daily.Electricity.Data, info);
-                                    SetLastDay(daily.Electricity.Data, info);
                                 }
 
                                 if (daily.Gas != null && daily.Gas.Data != null)
                                 {
                                     sqlite.UpsertDaily("Gas", daily.Gas.Data);
-
-                                    SetFirstDay(daily.Gas.Data, info);
-                                    SetLastDay(daily.Gas.Data, info);
                                 }
                             }
 
@@ -320,11 +291,6 @@ namespace OvoData.Forms
 
                     year--;
                 }
-
-                sqlite.UpsertInformation(info);
-
-                FirstUsageDate.Text = info.FirstDay;
-                LastUsageDate.Text = info.LastDay;
             }
             catch (Exception exception)
             {
@@ -339,6 +305,9 @@ namespace OvoData.Forms
 
         private void ClearDown()
         {
+            var sqlite = new SqLiteHelper(_selectedAccount.Id);
+            AccountInformation.ItemsSource = sqlite.GetUsageInformation();
+
             SetStatusText("");
             SetStateOfControls(true);
 
@@ -363,54 +332,6 @@ namespace OvoData.Forms
             };
             window.ShowDialog();
             ClearDown();
-        }
-
-        private static void SetFirstDay(List<DailyDataItem> data, Information info)
-        {
-            if (data.Any())
-            {
-                var minDate = data.Min(x => x.Interval.Start).ToString("yyyy-MM-dd");
-                if (string.IsNullOrEmpty(info.FirstDay) || string.CompareOrdinal(minDate, info.FirstDay) < 0)
-                {
-                    info.FirstDay = minDate;
-                }
-            }
-        }
-
-        private static void SetFirstMonth(List<MonthlyDataItem> data, int year, Information info)
-        {
-            if (data.Any())
-            {
-                var minMonth = $"{year}-{data.Min(x => x.Month):D2}";
-                if (string.IsNullOrEmpty(info.FirstMonth) || string.CompareOrdinal(minMonth, info.FirstMonth) < 0)
-                {
-                    info.FirstMonth = minMonth;
-                }
-            }
-        }
-
-        private static void SetLastDay(List<DailyDataItem> data, Information info)
-        {
-            if (data.Any())
-            {
-                var maxDate = data.Max(x => x.Interval.Start).ToString("yyyy-MM-dd");
-                if (string.IsNullOrEmpty(info.FirstDay) || string.CompareOrdinal(maxDate, info.LastDay) > 0)
-                {
-                    info.LastDay = maxDate;
-                }
-            }
-        }
-
-        private static void SetLastMonth(List<MonthlyDataItem> data, int year, Information info)
-        {
-            if (data.Any())
-            {
-                var maxMonth = $"{year}-{data.Max(x => x.Month):D2}";
-                if (string.IsNullOrEmpty(info.LastMonth) || string.CompareOrdinal(maxMonth, info.LastMonth) > 0)
-                {
-                    info.LastMonth = maxMonth;
-                }
-            }
         }
 
         private static int LastDayInMonth(int year, int month)
@@ -444,13 +365,6 @@ namespace OvoData.Forms
                 {
                     sqlite.UpsertSupplyPoint(supplyPoint);
                 }
-
-                var info = new MetersInformation
-                {
-                    AccountId = _selectedAccount.Id
-                };
-
-                sqlite.UpsertSupplyPointsInformation(info);
 
                 Debugger.Break();
             }

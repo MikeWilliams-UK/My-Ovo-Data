@@ -1,9 +1,9 @@
 ﻿-- All Tables in creation order
 SELECT name FROM sqlite_master WHERE type='table' and name = 'fred';
 
-7 Tables
+6 Tables
 --------
-Information
+-- DROP TABLE Information;
 MonthlyElectric
 MonthlyGas
 DailyElectric
@@ -11,10 +11,18 @@ DailyGas
 HalfHourlyElectric
 HalfHourlyGas
 
-5 Tables
---------
-SupplyPointsInformation
+4 Extra Tables
+--------------
 SupplyPoint
 Meter
 MeterRegister
 Reading
+
+-- Tidy Up (bfore a new run)
+DROP TABLE SupplyPointsInformation;
+DROP TABLE SupplyPoints;
+DROP TABLE Meters;
+DROP TABLE MeterRegisters;
+DROP TABLE Readings;
+
+VACUUM;

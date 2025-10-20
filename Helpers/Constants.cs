@@ -13,5 +13,6 @@ public static class Constants
     public const string ShortDateFormat = "yyyy-MM-dd";
 
     public const string FuelTypeElectricity = "ELECTRICITY";
+    public const string FuelTypeElectric = "ELECTRIC";
     public const string FuelTypeGas = "GAS";
 }

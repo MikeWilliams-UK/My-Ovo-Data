@@ -1,4 +1,6 @@
-﻿using System;
+﻿using OvoData.Models;
+using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Text;
@@ -23,13 +25,13 @@ public partial class SqLiteHelper
         if (!File.Exists(_dataFile))
         {
             SQLiteConnection.CreateFile(_dataFile);
-            CreateBaseTables();
+            CreateInitialTables();
         }
 
         // Add readings tables if required
-        if (!TableExists("SupplyPointsInformation"))
+        if (!TableExists("SupplyPoints"))
         {
-            CreateReadingsTables();
+            ApplyV105Changes();
         }
     }
 
@@ -39,9 +41,9 @@ public partial class SqLiteHelper
         return conn.OpenAndReturn();
     }
 
-    private void CreateBaseTables()
+    private void CreateInitialTables()
     {
-        var tables = ResourceHelper.GetStringResource("SQLite.Create-Initial-Database.sql").Split(Environment.NewLine);
+        var tables = ResourceHelper.GetStringResource("SQLite.Initial-Database.sql").Split(Environment.NewLine);
 
         using (var connection = GetConnection())
         {
@@ -56,9 +58,9 @@ public partial class SqLiteHelper
         }
     }
 
-    private void CreateReadingsTables()
+    private void ApplyV105Changes()
     {
-        var tables = ResourceHelper.GetStringResource("SqLite.Add-Meter-Readings-Tables.sql").Split(Environment.NewLine);
+        var tables = ResourceHelper.GetStringResource("SqLite.V1.0.5-Changes.sql").Split(Environment.NewLine);
 
         using (var connection = GetConnection())
         {
@@ -69,6 +71,87 @@ public partial class SqLiteHelper
                     var command = new SQLiteCommand(table, connection);
                     command.ExecuteNonQuery();
                 }
+            }
+        }
+    }
+
+    public List<Summary> GetUsageInformation()
+    {
+        var result = new List<Summary>();
+
+        using (var connection = GetConnection())
+        {
+            GetUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeElectric));
+            GetUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeGas));
+            GetElectricityReadingMetric(connection);
+            GetGasReadingMetric(connection);
+        }
+
+        return result;
+
+        void GetUsageMetric(SQLiteConnection connection, string fuelType)
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("SELECT MAX(Day) AS Max, MIN(Day) AS Min");
+            stringBuilder.AppendLine($"FROM Daily{fuelType}");
+
+            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                ExtractMetric(reader, "Usage", fuelType);
+            }
+        }
+
+        void GetElectricityReadingMetric(SQLiteConnection connection)
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("SELECT MAX(Date) AS Max, MIN(Date) AS Min");
+            stringBuilder.AppendLine("FROM Readings");
+            stringBuilder.AppendLine($"WHERE FuelType = '{Constants.FuelTypeElectricity}'");
+
+            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                ExtractMetric(reader, "Readings", Constants.FuelTypeElectric);
+            }
+        }
+
+        void GetGasReadingMetric(SQLiteConnection connection)
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("SELECT MAX(Date) AS Max, MIN(Date) AS Min");
+            stringBuilder.AppendLine("FROM Readings");
+            stringBuilder.AppendLine($"WHERE FuelType = '{Constants.FuelTypeGas}'");
+
+            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                ExtractMetric(reader, "Readings", Constants.FuelTypeGas);
+            }
+        }
+
+        void ExtractMetric(SQLiteDataReader reader, string metric, string fuelType)
+        {
+            var from = reader["Min"] as string ?? string.Empty;
+            var to = reader["Max"] as string ?? string.Empty;
+
+            if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
+            {
+                var info = new Summary
+                {
+                    FuelType = StringHelper.ProperCase(fuelType),
+                    InfoType = metric,
+                    From = from,
+                    To = to
+                };
+
+                result.Add(info);
             }
         }
     }

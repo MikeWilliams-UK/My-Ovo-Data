@@ -1,5 +1,4 @@
 ﻿using OvoData.Models.Api.Usage;
-using OvoData.Models.Database;
 using OvoData.Models.Database.Usage;
 using System;
 using System.Collections.Generic;
@@ -10,49 +9,6 @@ namespace OvoData.Helpers;
 
 public partial class SqLiteHelper
 {
-    public Information GetInformation()
-    {
-        var result = new Information();
-
-        using (var connection = GetConnection())
-        {
-            var stringBuilder = new StringBuilder();
-
-            stringBuilder.AppendLine("SELECT AccountId, FirstMonth, LastMonth, FirstDay, LastDay");
-            stringBuilder.AppendLine("FROM Information");
-
-            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
-            var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                result.AccountId = reader["AccountId"] as string ?? string.Empty;
-                result.FirstMonth = reader["FirstMonth"] as string ?? string.Empty;
-                result.LastMonth = reader["LastMonth"] as string ?? string.Empty;
-                result.FirstDay = reader["FirstDay"] as string ?? string.Empty;
-                result.LastDay = reader["LastDay"] as string ?? string.Empty;
-            }
-        }
-
-        return result;
-    }
-
-    public void UpsertInformation(Information info)
-    {
-        using (var connection = GetConnection())
-        {
-            var stringBuilder = new StringBuilder();
-
-            stringBuilder.AppendLine("INSERT INTO Information");
-            stringBuilder.AppendLine("VALUES");
-            stringBuilder.AppendLine($"('{info.AccountId}', '{info.FirstMonth}', '{info.LastMonth}', '{info.FirstDay}', '{info.LastDay}')");
-            stringBuilder.AppendLine("ON CONFLICT (AccountId)");
-            stringBuilder.AppendLine("DO UPDATE SET FirstMonth = excluded.FirstMonth, LastMonth = excluded.LastMonth, FirstDay = excluded.FirstDay, LastDay = excluded.LastDay");
-
-            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
-            command.ExecuteNonQuery();
-        }
-    }
-
     public int CountMonthy(string fuelType, int year)
     {
         var result = 0;
