@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 
-namespace OvoData.Models;
+namespace OvoData.Models.Database.Readings;
 
-public class OvoMeter
+public class Meter
 {
     public string SerialNumber { get; set; } = string.Empty;
 
     public string Type { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
 
-    public List<OvoMeterRegister> Registers { get; set; } = [];
+    public List<Register> Registers { get; set; } = [];
 
     public override string ToString()
     {

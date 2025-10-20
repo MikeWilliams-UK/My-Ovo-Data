@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace OvoData.Models;
+namespace OvoData.Models.Database.Readings;
 
-public class OvoMeterRegister
+public class Register
 {
     public string Id { get; set; } = string.Empty;
 

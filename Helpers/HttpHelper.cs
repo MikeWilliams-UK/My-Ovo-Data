@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
-using OvoData.Models;
 using OvoData.Models.Api.Account;
 using OvoData.Models.Api.Login;
 using OvoData.Models.Api.Readings;
 using OvoData.Models.Api.Usage;
+using OvoData.Models.Database.Readings;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,7 +40,7 @@ public class HttpHelper
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public bool FirstLogin(string username, string password, out Tokens tokens, out List<OvoAccount> ovoAccounts)
+    public bool FirstLogin(string username, string password, out Tokens tokens, out List<Models.Database.Account> ovoAccounts)
     {
         var result = false;
         ovoAccounts = [];
@@ -170,9 +170,9 @@ public class HttpHelper
         return tokens;
     }
 
-    private List<OvoAccount> ObtainAccountDetails(Tokens tokens)
+    private List<Models.Database.Account> ObtainAccountDetails(Tokens tokens)
     {
-        var result = new List<OvoAccount>();
+        var result = new List<Models.Database.Account>();
 
         try
         {
@@ -203,7 +203,7 @@ public class HttpHelper
                     var accounts = accountsResponse.Data.Customer.Relationships.Accounts.ToList();
                     foreach (var account in accounts)
                     {
-                        var ovoAccount = new OvoAccount
+                        var ovoAccount = new Models.Database.Account
                         {
                             Id = account.Details.AccountDetail.Id
                         };
@@ -358,9 +358,9 @@ public class HttpHelper
         return result;
     }
 
-    public List<OvoSupplyPoint> ObtainMeterReadings(Tokens tokens, string accountId)
+    public List<Models.Database.SupplyPoint> ObtainMeterReadings(Tokens tokens, string accountId)
     {
-        List<OvoSupplyPoint> result = [];
+        List<Models.Database.SupplyPoint> result = [];
 
         try
         {
@@ -405,7 +405,7 @@ public class HttpHelper
                         .ToList();
                     if (electric.Any())
                     {
-                        var ovoSupplyPoint = new OvoSupplyPoint
+                        var ovoSupplyPoint = new Models.Database.SupplyPoint
                         {
                             Sprn = electric[0].SupplyPoint.Sprn,
                             Type = Constants.FuelTypeElectricity
@@ -415,7 +415,7 @@ public class HttpHelper
                         {
                             foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
                             {
-                                var ovoMeter = new OvoMeter
+                                var ovoMeter = new Meter
                                 {
                                     SerialNumber = meter.MeterSerialNumber,
                                     Type = meter.Type,
@@ -424,7 +424,7 @@ public class HttpHelper
 
                                 foreach (var detail in meter.MeterRegisters)
                                 {
-                                    var ovoMeterRegister = new OvoMeterRegister
+                                    var ovoMeterRegister = new Register
                                     {
                                         TimingCategory = detail.TimingCategory,
                                         UnitOfMeasurement = detail.UnitMeasurement,
@@ -455,7 +455,7 @@ public class HttpHelper
                             foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
                             {
                                 var node = edge.MeterNode.MeterReadingData;
-                                var ovoMeterReading = new OvoMeterReading
+                                var ovoMeterReading = new Reading
                                 {
                                     Type = node.Type,
                                     Date = DateTime.ParseExact(node.Date, Constants.ShortDateFormat, CultureInfo.InvariantCulture),
@@ -483,7 +483,7 @@ public class HttpHelper
                         .ToList();
                     if (gas.Any())
                     {
-                        var ovoSupplyPoint = new OvoSupplyPoint
+                        var ovoSupplyPoint = new Models.Database.SupplyPoint
                         {
                             Sprn = gas[0].SupplyPoint.Sprn,
                             Type = Constants.FuelTypeGas
@@ -493,7 +493,7 @@ public class HttpHelper
                         {
                             foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
                             {
-                                var ovoMeter = new OvoMeter
+                                var ovoMeter = new Meter
                                 {
                                     SerialNumber = meter.MeterSerialNumber,
                                     Type = meter.Type,
@@ -502,7 +502,7 @@ public class HttpHelper
 
                                 foreach (var detail in meter.MeterRegisters)
                                 {
-                                    var ovoMeterRegister = new OvoMeterRegister
+                                    var ovoMeterRegister = new Register
                                     {
                                         TimingCategory = detail.TimingCategory,
                                         UnitOfMeasurement = detail.UnitMeasurement,
@@ -533,7 +533,7 @@ public class HttpHelper
                             foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
                             {
                                 var node = edge.MeterNode.MeterReadingData;
-                                var ovoMeterReading = new OvoMeterReading
+                                var ovoMeterReading = new Reading
                                 {
                                     Type = node.Type,
                                     Date = DateTime.ParseExact(node.Date, Constants.ShortDateFormat, CultureInfo.InvariantCulture),
@@ -558,7 +558,6 @@ public class HttpHelper
             Debugger.Break();
         }
 
-        Debugger.Break();
         return result;
     }
 }

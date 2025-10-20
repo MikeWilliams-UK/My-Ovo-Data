@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace OvoData.Models;
+namespace OvoData.Models.Database.Readings;
 
-public class OvoMeterReading
+public class Reading
 {
     public DateTime Date { get; set; }
     public string Type { get; set; } = string.Empty;

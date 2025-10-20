@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Win32;
 using OvoData.Helpers;
-using OvoData.Models;
 using OvoData.Models.Api.Login;
 using OvoData.Models.Api.Usage;
 using OvoData.Models.Database;
@@ -25,7 +24,7 @@ namespace OvoData.Forms
         private readonly IConfigurationRoot _configuration;
 
         private Tokens _tokens;
-        private OvoAccount _selectedAccount;
+        private Account _selectedAccount;
 
         private bool _cancelRequested;
 
@@ -44,7 +43,7 @@ namespace OvoData.Forms
 
             _httpHelper = new HttpHelper(_configuration);
             _tokens = new Tokens();
-            _selectedAccount = new OvoAccount();
+            _selectedAccount = new Account();
         }
 
         private void OnLoaded_MainWindow(object sender, RoutedEventArgs e)
@@ -124,12 +123,12 @@ namespace OvoData.Forms
         private void OnSelectionChanged_Accounts(object sender, SelectionChangedEventArgs e)
         {
             if (Accounts.SelectedItems.Count == 1
-                && Accounts.SelectedItem is OvoAccount account)
+                && Accounts.SelectedItem is Account account)
             {
                 _selectedAccount = account;
                 SetStateOfControls(true);
 
-                var sqlite = new SqliteHelper(_selectedAccount.Id);
+                var sqlite = new SqLiteHelper(_selectedAccount.Id);
 
                 var info = sqlite.GetInformation();
                 FirstUsageDate.Text = info.FirstDay;
@@ -184,7 +183,7 @@ namespace OvoData.Forms
 
                 var monthsFetched = 0;
 
-                var sqlite = new SqliteHelper(_selectedAccount.Id);
+                var sqlite = new SqLiteHelper(_selectedAccount.Id);
 
                 while (!_cancelRequested)
                 {
@@ -435,11 +434,24 @@ namespace OvoData.Forms
         {
             try
             {
-                var temp = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
+                var supplyPoints = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
 
-                //ToDo: Write the data to SQLite
+                var sqlite = new SqLiteHelper(_selectedAccount.Id);
 
-                Debug.WriteLine(temp.Count);
+                Debugger.Break();
+
+                foreach (var supplyPoint in supplyPoints)
+                {
+                    sqlite.UpsertSupplyPoint(supplyPoint);
+                }
+
+                var info = new MetersInformation
+                {
+                    AccountId = _selectedAccount.Id
+                };
+
+                sqlite.UpsertSupplyPointsInformation(info);
+
                 Debugger.Break();
             }
             catch (Exception exception)

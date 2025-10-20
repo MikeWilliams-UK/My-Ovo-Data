@@ -1,5 +1,5 @@
 ﻿-- All Tables in creation order
-SELECT name FROM sqlite_master WHERE type='table';
+SELECT name FROM sqlite_master WHERE type='table' and name = 'fred';
 
 7 Tables
 --------
@@ -13,8 +13,8 @@ HalfHourlyGas
 
 5 Tables
 --------
-Reading
+SupplyPointsInformation
 SupplyPoint
 Meter
 MeterRegister
-SupplyPointsInformation
+Reading

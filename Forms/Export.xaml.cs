@@ -260,7 +260,7 @@ namespace OvoData.Forms
 
         private void CollectData()
         {
-            var helper = new SqliteHelper(Account);
+            var helper = new SqLiteHelper(Account);
             ParentWindow.SetStatusText("Fetching Monthly data");
             _monthlyData = GetMonthlyData(helper);
             ParentWindow.SetStatusText("Fetching Daily data");
@@ -269,7 +269,7 @@ namespace OvoData.Forms
             _halfHourlyData = GetHalfHourlyData(helper);
         }
 
-        private SortedDictionary<string, HalfHourlyData> GetHalfHourlyData(SqliteHelper helper)
+        private SortedDictionary<string, HalfHourlyData> GetHalfHourlyData(SqLiteHelper helper)
         {
             var result = new SortedDictionary<string, HalfHourlyData>(new DescendingComparer<string>());
 
@@ -305,7 +305,7 @@ namespace OvoData.Forms
             return result;
         }
 
-        private SortedDictionary<string, DailyData> GetDailyData(SqliteHelper helper)
+        private SortedDictionary<string, DailyData> GetDailyData(SqLiteHelper helper)
         {
             var result = new SortedDictionary<string, DailyData>(new DescendingComparer<string>());
 
@@ -352,7 +352,7 @@ namespace OvoData.Forms
             return result;
         }
 
-        private SortedDictionary<string, MonthlyData> GetMonthlyData(SqliteHelper helper)
+        private SortedDictionary<string, MonthlyData> GetMonthlyData(SqLiteHelper helper)
         {
             var result = new SortedDictionary<string, MonthlyData>(new DescendingComparer<string>());
 

@@ -1,6 +1,6 @@
-﻿namespace OvoData.Models;
+﻿namespace OvoData.Models.Database;
 
-public class OvoAccount
+public class Account
 {
     public string Id { get; set; } = string.Empty;
 

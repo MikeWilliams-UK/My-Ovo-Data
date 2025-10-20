@@ -9,18 +9,18 @@ public sealed class MonthlyChartDataMap : ClassMap<MonthlyChartData>
     {
         Map(x => x.Year).Name("Year").ColumnType(ColumnType.Text);
 
-        Map(x => x.JanKwh).Name("Jan Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.FebKwh).Name("Feb Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.MarKwh).Name("Mar Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.AprKwh).Name("Apr Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.MayKwh).Name("May Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.JunKwh).Name("Jun Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.JulKwh).Name("Jul Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.AugKwh).Name("Aug Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.SepKwh).Name("Sep Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.OctKwh).Name("Oct Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.NovKwh).Name("Nov Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.DecKwh).Name("Dec Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.JanKwh).Name("Jan kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.FebKwh).Name("Feb kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.MarKwh).Name("Mar kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.AprKwh).Name("Apr kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.MayKwh).Name("May kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.JunKwh).Name("Jun kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.JulKwh).Name("Jul kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.AugKwh).Name("Aug kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.SepKwh).Name("Sep kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.OctKwh).Name("Oct kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.NovKwh).Name("Nov kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.DecKwh).Name("Dec kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
 
         Map(x => x.JanCost).Name("Jan Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);
         Map(x => x.FebCost).Name("Feb Cost").ColumnType(ColumnType.Number).Style(Styles.Pounds);

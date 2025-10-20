@@ -22,8 +22,8 @@
     <ItemGroup>
       <None Remove="Resources\GraphQL.Readings.json" />
       <None Remove="Resources\GraphQL.Readings.Query.txt" />
-      <None Remove="Resources\SQLite\Add-Meter-Readings-Tables.sql" />
-      <None Remove="Resources\SQLite\Create-Initial-Database.sql" />
+      <None Remove="Resources\SqLite\Add-Meter-Readings-Tables.sql" />
+      <None Remove="Resources\SqLite\Create-Initial-Database.sql" />
     </ItemGroup>
     <ItemGroup>
       <Page Remove="Forms\App.xaml" />
@@ -43,8 +43,8 @@
         <EmbeddedResource Include="Resources\GraphQL\Accounts.query" />
         <EmbeddedResource Include="Resources\GraphQL\Readings.json" />
         <EmbeddedResource Include="Resources\GraphQL\Readings.query" />
-        <EmbeddedResource Include="Resources\SQLite\Add-Meter-Readings-Tables.sql" />
-        <EmbeddedResource Include="Resources\SQLite\Create-Initial-Database.sql" />
+        <EmbeddedResource Include="Resources\SqLite\Add-Meter-Readings-Tables.sql" />
+        <EmbeddedResource Include="Resources\SqLite\Create-Initial-Database.sql" />
         <Resource Include="Images\Ovo.ico" />
     </ItemGroup>
 

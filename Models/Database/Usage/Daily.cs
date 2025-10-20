@@ -1,6 +1,6 @@
-﻿namespace OvoData.Models.Database;
+﻿namespace OvoData.Models.Database.Usage;
 
-public class DailyReading
+public class Daily
 {
     public string Day { get; set; } = string.Empty;
     public double Consumption { get; set; }

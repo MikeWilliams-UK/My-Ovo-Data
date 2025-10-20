@@ -1,6 +1,6 @@
-﻿namespace OvoData.Models.Database;
+﻿namespace OvoData.Models.Database.Usage;
 
-public class MonthlyReading
+public class Monthly
 {
     public string Month { get; set; } = string.Empty;
     public double Consumption { get; set; }
