@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DocumentFormat.OpenXml.EMMA;
+using Microsoft.Extensions.Configuration;
 using OvoData.Models.Api.Account;
 using OvoData.Models.Api.Login;
 using OvoData.Models.Api.Readings;
@@ -408,7 +409,7 @@ public class HttpHelper
                         var ovoSupplyPoint = new Models.Database.SupplyPoint
                         {
                             Sprn = electric[0].SupplyPoint.Sprn,
-                            Type = Constants.FuelTypeElectricity
+                            FuelType = Constants.FuelTypeElectricity
                         };
 
                         foreach (var accountSupplyPoint in electric)
@@ -436,14 +437,14 @@ public class HttpHelper
                                             CultureInfo.InvariantCulture,
                                             DateTimeStyles.AssumeUniversal, out var startDate))
                                     {
-                                        ovoMeterRegister.StartDate = startDate;
+                                        ovoMeterRegister.StartDate = DateHelper.IsoDateOnly(startDate);
                                     }
                                     if (DateTime.TryParseExact(detail.RegisterEndDate,
                                             Constants.ZuluDateTimeFormat,
                                             CultureInfo.InvariantCulture,
                                             DateTimeStyles.AssumeUniversal, out var endDate))
                                     {
-                                        ovoMeterRegister.EndDate = endDate;
+                                        ovoMeterRegister.EndDate = DateHelper.IsoDateOnly(endDate);
                                     }
 
                                     ovoMeter.Registers.Add(ovoMeterRegister);
@@ -458,7 +459,7 @@ public class HttpHelper
                                 var ovoMeterReading = new Reading
                                 {
                                     Type = node.Type,
-                                    Date = DateTime.ParseExact(node.Date, Constants.ShortDateFormat, CultureInfo.InvariantCulture),
+                                    Date = node.Date,
                                     LifeCycle = node.Lifecycle,
                                     Source = node.Source,
                                     MeterSerialNumber = node.MeterSerialNumber
@@ -486,7 +487,7 @@ public class HttpHelper
                         var ovoSupplyPoint = new Models.Database.SupplyPoint
                         {
                             Sprn = gas[0].SupplyPoint.Sprn,
-                            Type = Constants.FuelTypeGas
+                            FuelType = Constants.FuelTypeGas
                         };
 
                         foreach (var accountSupplyPoint in gas)
@@ -514,14 +515,14 @@ public class HttpHelper
                                             CultureInfo.InvariantCulture,
                                             DateTimeStyles.AssumeUniversal, out var startDate))
                                     {
-                                        ovoMeterRegister.StartDate = startDate;
+                                        ovoMeterRegister.StartDate = DateHelper.IsoDateOnly(startDate);
                                     }
                                     if (DateTime.TryParseExact(detail.RegisterEndDate,
                                             Constants.ZuluDateTimeFormat,
                                             CultureInfo.InvariantCulture,
                                             DateTimeStyles.AssumeUniversal, out var endDate))
                                     {
-                                        ovoMeterRegister.EndDate = endDate;
+                                        ovoMeterRegister.EndDate = DateHelper.IsoDateOnly(endDate);
                                     }
 
                                     ovoMeter.Registers.Add(ovoMeterRegister);
@@ -536,7 +537,7 @@ public class HttpHelper
                                 var ovoMeterReading = new Reading
                                 {
                                     Type = node.Type,
-                                    Date = DateTime.ParseExact(node.Date, Constants.ShortDateFormat, CultureInfo.InvariantCulture),
+                                    Date = node.Date,
                                     LifeCycle = node.Lifecycle,
                                     Source = node.Source,
                                     MeterSerialNumber = node.MeterSerialNumber,

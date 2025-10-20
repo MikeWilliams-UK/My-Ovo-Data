@@ -4,7 +4,7 @@ namespace OvoData.Models.Database.Readings;
 
 public class Reading
 {
-    public DateTime Date { get; set; }
+    public string Date { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string LifeCycle { get; set; } = string.Empty;
     public string Source { get; set; } = string.Empty;
@@ -16,6 +16,6 @@ public class Reading
 
     public override string ToString()
     {
-        return $"{Date:yyyy-MM-dd} - {MeterSerialNumber} - {Source} - {Value}";
+        return $"{Date} - {MeterSerialNumber} - {Source} - {Value}";
     }
 }

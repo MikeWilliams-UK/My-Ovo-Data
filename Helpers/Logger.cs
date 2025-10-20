@@ -12,7 +12,7 @@ public static class Logger
         {
             using (var streamWriter = File.AppendText(GetFileName()))
             {
-                streamWriter.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}");
+                streamWriter.WriteLine($"{DateHelper.LogEntryTimestamp()} - {message}");
                 Debug.WriteLine(message);
             }
         }
@@ -27,7 +27,7 @@ public static class Logger
             Directory.CreateDirectory(Path.Combine(folder, "Logs"));
         }
 
-        var fileName = Path.Combine(folder, "Logs", $"{DateTime.Now:yyyy-MM-dd}.log");
+        var fileName = Path.Combine(folder, "Logs", $"{DateHelper.LogFileSuffix()}.log");
 
         return fileName;
     }
@@ -41,7 +41,7 @@ public static class Logger
             Directory.CreateDirectory(Path.Combine(folder, "Dump"));
         }
 
-        var fileName = Path.Combine(folder, "Dump", $"{DateTime.Now:yyyy-MM-dd HH-mm-ss.fff} {responseType}.json");
+        var fileName = Path.Combine(folder, "Dump", $"{DateHelper.LogFileSuffix(true)} {responseType}.json");
 
         File.WriteAllText(fileName, json);
     }

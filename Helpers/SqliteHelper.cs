@@ -109,7 +109,7 @@ public partial class SqLiteHelper
             var stringBuilder = new StringBuilder();
 
             stringBuilder.AppendLine("SELECT MAX(Date) AS Max, MIN(Date) AS Min");
-            stringBuilder.AppendLine("FROM Readings");
+            stringBuilder.AppendLine("FROM MeterReadings");
             stringBuilder.AppendLine($"WHERE FuelType = '{Constants.FuelTypeElectricity}'");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
@@ -125,7 +125,7 @@ public partial class SqLiteHelper
             var stringBuilder = new StringBuilder();
 
             stringBuilder.AppendLine("SELECT MAX(Date) AS Max, MIN(Date) AS Min");
-            stringBuilder.AppendLine("FROM Readings");
+            stringBuilder.AppendLine("FROM MeterReadings");
             stringBuilder.AppendLine($"WHERE FuelType = '{Constants.FuelTypeGas}'");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);

@@ -19,10 +19,10 @@ MeterRegister
 Reading
 
 -- Tidy Up (bfore a new run)
-DROP TABLE SupplyPointsInformation;
+--DROP TABLE SupplyPointsInformation;
 DROP TABLE SupplyPoints;
 DROP TABLE Meters;
 DROP TABLE MeterRegisters;
-DROP TABLE Readings;
+DROP TABLE MeterReadings;
 
 VACUUM;

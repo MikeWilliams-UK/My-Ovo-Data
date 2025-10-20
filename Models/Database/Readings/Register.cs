@@ -6,16 +6,16 @@ public class Register
 {
     public string Id { get; set; } = string.Empty;
 
-    public DateTime StartDate { get; set; }
-    public DateTime? EndDate { get; set; }
+    public string StartDate { get; set; } = string.Empty;
+    public string EndDate { get; set; } = string.Empty;
 
     public string TimingCategory { get; set; } = string.Empty;
     public string UnitOfMeasurement { get; set; } = string.Empty;
 
     public override string ToString()
     {
-        return EndDate is null
-            ? $"{StartDate:yyyy-MM-dd} - {TimingCategory} - {UnitOfMeasurement}"
-            : $"{StartDate:yyyy-MM-dd} - {EndDate:yyyy-MM-dd} - {TimingCategory} - {UnitOfMeasurement}";
+        return string.IsNullOrEmpty(EndDate)
+            ? $"{StartDate} - {TimingCategory} - {UnitOfMeasurement}"
+            : $"{StartDate} - {EndDate} - {TimingCategory} - {UnitOfMeasurement}";
     }
 }

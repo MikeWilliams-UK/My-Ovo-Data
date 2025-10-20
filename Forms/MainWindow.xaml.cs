@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -357,16 +358,40 @@ namespace OvoData.Forms
             {
                 var supplyPoints = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
 
-                var sqlite = new SqLiteHelper(_selectedAccount.Id);
+                SetStatusText("Updating values");
 
-                Debugger.Break();
+                var sqlite = new SqLiteHelper(_selectedAccount.Id);
 
                 foreach (var supplyPoint in supplyPoints)
                 {
                     sqlite.UpsertSupplyPoint(supplyPoint);
-                }
 
-                Debugger.Break();
+                    foreach (var meter in supplyPoint.Meters)
+                    {
+                        sqlite.UpsertMeter(meter, supplyPoint.FuelType);
+
+                        foreach (var register in meter.Registers)
+                        {
+                            sqlite.UpsertMeterRegisters(register, supplyPoint.FuelType);
+                        }
+                    }
+
+                    int idx = 0;
+                    int records = 0;
+                    foreach (var reading in supplyPoint.Readings)
+                    {
+                        sqlite.UpsertMeterReading(reading, supplyPoint.FuelType);
+
+                        idx++;
+                        records++;
+
+                        if (idx >= 25)
+                        {
+                            idx = 0;
+                            SetStatusText($"Written {records} {StringHelper.ProperCase(supplyPoint.FuelType)} readings");
+                        }
+                    }
+                }
             }
             catch (Exception exception)
             {
