@@ -73,68 +73,97 @@ public class HttpHelper
 
     private bool ExecuteLoginRequest(LoginRequest loginRequest, out Tokens tokens)
     {
-        bool result;
+        var result = false;
         tokens = new Tokens();
 
-        var uri = new Uri(_configuration["LoginUri"]!);
-        var request = new HttpRequestMessage(HttpMethod.Post, uri);
-        var requestContent = JsonSerializer.Serialize(loginRequest, JsonSerializerOptions);
-        request.Content = new StringContent(requestContent, Encoding.ASCII, "application/json");
-
-        _logger.WriteLine($"Calling API endpoint at Uri: {uri} to Log in as '{loginRequest.Username}'");
-
-        var response = _httpClient1.SendAsync(request).Result;
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var responseContent = response.Content.ReadAsStringAsync().Result;
-            if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
-            {
-                _logger.DumpJson("FirstLogin-Response", responseContent);
-            }
-            var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, JsonSerializerOptions);
-            if (loginResponse != null)
-            {
-                tokens.UserGuid = loginResponse.UserId;
-                Debug.WriteLine($"UserName: {loginResponse.UserName}");
-                Debug.WriteLine($"UserGuid: {loginResponse.UserId}");
-            }
+            var uri = new Uri(_configuration["LoginUri"]!);
+            var request = new HttpRequestMessage(HttpMethod.Post, uri);
+            var requestContent = JsonSerializer.Serialize(loginRequest, JsonSerializerOptions);
+            request.Content = new StringContent(requestContent, Encoding.ASCII, "application/json");
 
-            var cookies = new List<Cookie>();
-            if (response.Headers.TryGetValues("Set-Cookie", out var cookieHeaders))
+            _logger.WriteLine($"Calling API endpoint at Uri: {uri} to Log in as '{loginRequest.Username}'");
+
+            var response = _httpClient1.SendAsync(request).Result;
+            if (response.IsSuccessStatusCode)
             {
-                foreach (var header in cookieHeaders)
+                ExtractRefreshToken(tokens, response, uri);
+
+                var responseContent = response.Content.ReadAsStringAsync().Result;
+                if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    var cookieContainer = new CookieContainer();
-                    cookieContainer.SetCookies(uri, header);
-
-                    foreach (Cookie cookie in cookieContainer.GetCookies(uri))
-                    {
-                        cookies.Add(cookie);
-                    }
+                    _logger.DumpJson("FirstLogin-Response", responseContent);
                 }
-            }
 
-            tokens.RefreshToken = cookies[0].Value;
-            result = true;
+                var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, JsonSerializerOptions);
+                if (loginResponse != null)
+                {
+                    tokens.UserGuid = loginResponse.UserId;
+                    Debug.WriteLine($"UserName: {loginResponse.UserName}");
+                    Debug.WriteLine($"UserGuid: {loginResponse.UserId}");
+                }
+
+                result = true;
+            }
+            else
+            {
+                result = false;
+            }
         }
-        else
+        catch (Exception exception)
         {
-            result = false;
+            _logger.WriteLine(exception.ToString());
         }
 
         return result;
     }
 
+    private void ExtractRefreshToken(Tokens tokens, HttpResponseMessage response, Uri uri)
+    {
+        var cookies = new List<Cookie>();
+        if (response.Headers.TryGetValues("Set-Cookie", out var cookieHeaders))
+        {
+            foreach (var header in cookieHeaders)
+            {
+                var cookieContainer = new CookieContainer();
+                cookieContainer.SetCookies(uri, header);
+
+                foreach (Cookie cookie in cookieContainer.GetCookies(uri))
+                {
+                    cookies.Add(cookie);
+                }
+            }
+        }
+
+        tokens.RefreshToken = cookies[0].Value;
+        tokens.RefreshTokenExpiryTime = cookies[0].Expires;
+        tokens.RefreshTokenExpired = false;
+
+        _logger.DumpJson("Refresh-Token", JwtHelper.DumpJwt(tokens.RefreshToken));
+    }
+
     private Tokens CheckTokens(Tokens tokens)
     {
         var now = DateTime.Now;
-        Debug.WriteLine($"CheckTokens() Now: {now} Refresh Token: {tokens.RefreshTokenExpiryTime} Access Token: {tokens.AccessTokenExpiryTime}");
+        Debug.WriteLine($"CheckTokens() Now: {now} Access Token: {tokens.AccessTokenExpiryTime} Refresh Token: {tokens.RefreshTokenExpiryTime}");
 
         if (now >= tokens.AccessTokenExpiryTime)
         {
+            tokens.AccessTokenExpired = true;
+        }
+
+        if (now >= tokens.RefreshTokenExpiryTime)
+        {
+            tokens.RefreshTokenExpired = true;
+        }
+
+        // If Access token has expired and Refresh Token has NOT expired
+        if (tokens.AccessTokenExpired && !tokens.RefreshTokenExpired)
+        {
             tokens = ObtainAccessTokens(tokens);
         }
-        else if (now >= tokens.RefreshTokenExpiryTime)
+        else
         {
             tokens = ObtainBothTokens();
         }
@@ -156,34 +185,51 @@ public class HttpHelper
 
     private Tokens ObtainAccessTokens(Tokens tokens)
     {
-        var uri = new Uri(_configuration["TokenUri"]!);
-        var request = new HttpRequestMessage(HttpMethod.Get, uri);
-        request.Headers.Add("restricted_refresh_token", tokens.RefreshToken);
-
-        if (string.IsNullOrEmpty(tokens.AccessToken))
+        try
         {
-            _logger.WriteLine($"Calling API endpoint at Uri: {uri} to obtain access token");
-        }
-        else
-        {
-            _logger.WriteLine($"Calling API endpoint at Uri: {uri} to refresh access token"); 
-        }
+            var uri = new Uri(_configuration["TokenUri"]!);
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.Add("restricted_refresh_token", tokens.RefreshToken);
 
-        var response = _httpClient1.SendAsync(request).Result;
-        if (response.IsSuccessStatusCode)
-        {
-            var responseContent = response.Content.ReadAsStringAsync().Result;
-            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, JsonSerializerOptions);
-
-            if (tokenResponse != null)
+            if (string.IsNullOrEmpty(tokens.AccessToken))
             {
-                tokens.RefreshTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.RefreshExpiresIn);
-                tokens.AccessToken = tokenResponse.AccessToken.Value;
-                tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn);
-
-                Debug.WriteLine($"Access  Token Expires at {tokens.AccessTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
-                Debug.WriteLine($"Refresh Token Expires at {tokens.RefreshTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
+                _logger.WriteLine($"Calling API endpoint at Uri: {uri} to obtain access token");
             }
+            else
+            {
+                _logger.WriteLine($"Calling API endpoint at Uri: {uri} to refresh access token");
+            }
+
+            var response = _httpClient1.SendAsync(request).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                ExtractRefreshToken(tokens, response, uri);
+
+                var responseContent = response.Content.ReadAsStringAsync().Result;
+                var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, JsonSerializerOptions);
+
+                if (tokenResponse != null)
+                {
+                    if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
+                    {
+                        _logger.DumpJson("ObtainAccessTokens-Response", responseContent);
+                    }
+
+                    tokens.AccessToken = tokenResponse.AccessToken.Value;
+                    tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn);
+                    tokens.AccessTokenExpired = false;
+
+                    _logger.DumpJson("Access-Token", JwtHelper.DumpJwt(tokens.AccessToken));
+
+                    Debug.WriteLine($"Current Time             {DateTime.Now:dd-MMM-yyyy HH:mm:ss}");
+                    Debug.WriteLine($"Access  Token Expires at {tokens.AccessTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
+                    Debug.WriteLine($"Refresh Token Expires at {tokens.RefreshTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            _logger.WriteLine(exception.ToString());
         }
 
         return tokens;

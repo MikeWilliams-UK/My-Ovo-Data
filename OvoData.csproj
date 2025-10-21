@@ -53,6 +53,7 @@
         <PackageReference Include="OpenSpreadsheet" Version="1.2.3" />
         <PackageReference Include="SQLite" Version="3.13.0" />
         <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     </ItemGroup>
 
 </Project>

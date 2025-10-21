@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
@@ -34,18 +35,59 @@ namespace OvoData.Forms
 
         private Logger _logger;
 
+        private DispatcherTimer _timer;
+
         public MainWindow()
         {
+            InitializeComponent();
+
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("AppSettings.json")
                 .Build();
 
-            InitializeComponent();
+            // Initialize the timer
+            _timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1) // Set interval to 1 second
+            };
+            _timer.Tick += OnTick_Timer; // Attach the Tick event
+            _timer.Start(); // Start the timer
 
             _logger = new Logger();
             _tokens = new Tokens();
             _selectedAccount = new Account();
+        }
+
+        private void OnTick_Timer(object? sender, EventArgs e)
+        {
+            var now = DateTime.Now;
+            Value1.Text = $"{now:HH:mm:ss}";
+
+            if (!string.IsNullOrEmpty(_tokens.UserGuid))
+            {
+                Value2.Text = $"{_tokens.AccessTokenExpiryTime:HH:mm:ss}";
+                if (now >= _tokens.AccessTokenExpiryTime)
+                {
+                    _tokens.AccessTokenExpired = true;
+                    Value2.Foreground = Brushes.Red;
+                }
+                else
+                {
+                    Value2.Foreground = Brushes.Green;
+                }
+
+                Value3.Text = $"{_tokens.RefreshTokenExpiryTime:HH:mm:ss}";
+                if (now >= _tokens.RefreshTokenExpiryTime)
+                {
+                    _tokens.RefreshTokenExpired = true;
+                    Value3.Foreground = Brushes.Red;
+                }
+                else
+                {
+                    Value3.Foreground = Brushes.Green;
+                }
+            }
         }
 
         private void OnLoaded_MainWindow(object sender, RoutedEventArgs e)
@@ -59,13 +101,10 @@ namespace OvoData.Forms
             StopWhen.SelectedIndex = 0;
 
             SetStatusText("Please log in to your account");
+
             if (!Debugger.IsAttached)
             {
-                DebugHelper.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                DebugHelper.Text = "";
+                TokensVisualiser.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -335,8 +374,6 @@ namespace OvoData.Forms
 
             SetStatusText("");
             SetStateOfControls(true);
-
-            DebugHelper.Text = $"Now: {DateTime.Now:HH:mm:ss} Access: {_tokens.AccessTokenExpiryTime:HH:mm:ss} Refresh: {_tokens.RefreshTokenExpiryTime:HH:mm:ss}";
 
             GC.WaitForPendingFinalizers();
             GC.Collect();
