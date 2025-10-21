@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -93,14 +94,17 @@ public partial class SqLiteHelper
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendLine("SELECT MAX(Day) AS Max, MIN(Day) AS Min");
+            stringBuilder.AppendLine("SELECT MAX(Day) AS Max, MIN(Day) AS Min, Count(1) AS Count");
             stringBuilder.AppendLine($"FROM Daily{fuelType}");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             var reader = command.ExecuteReader();
-            while (reader.Read())
+            if (reader.HasRows)
             {
-                ExtractMetric(reader, "Usage", fuelType);
+                while (reader.Read())
+                {
+                    ExtractMetric(reader, "Usage", $"Daily{fuelType}", fuelType);
+                }
             }
         }
 
@@ -108,15 +112,18 @@ public partial class SqLiteHelper
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendLine("SELECT MAX(Date) AS Max, MIN(Date) AS Min");
+            stringBuilder.AppendLine("SELECT MAX(Date) AS Max, MIN(Date) AS Min, Count(1) AS Count");
             stringBuilder.AppendLine("FROM MeterReadings");
             stringBuilder.AppendLine($"WHERE FuelType = '{Constants.FuelTypeElectricity}'");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             var reader = command.ExecuteReader();
-            while (reader.Read())
+            if (reader.HasRows)
             {
-                ExtractMetric(reader, "Readings", Constants.FuelTypeElectric);
+                while (reader.Read())
+                {
+                    ExtractMetric(reader, "Readings", "MeterReadings", Constants.FuelTypeElectric);
+                }
             }
         }
 
@@ -124,22 +131,28 @@ public partial class SqLiteHelper
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendLine("SELECT MAX(Date) AS Max, MIN(Date) AS Min");
+            stringBuilder.AppendLine("SELECT MAX(Date) AS Max, MIN(Date) AS Min, Count(1) AS Count");
             stringBuilder.AppendLine("FROM MeterReadings");
             stringBuilder.AppendLine($"WHERE FuelType = '{Constants.FuelTypeGas}'");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             var reader = command.ExecuteReader();
-            while (reader.Read())
+            if (reader.HasRows)
             {
-                ExtractMetric(reader, "Readings", Constants.FuelTypeGas);
+                while (reader.Read())
+                {
+                    ExtractMetric(reader, "Readings", "MeterReadings", Constants.FuelTypeGas);
+                }
             }
         }
 
-        void ExtractMetric(SQLiteDataReader reader, string metric, string fuelType)
+        void ExtractMetric(SQLiteDataReader reader, string metric, string tableName, string fuelType)
         {
-            var from = reader["Min"] as string ?? string.Empty;
-            var to = reader["Max"] as string ?? string.Empty;
+            var from = FieldAsString(reader["Min"]);
+            var to = FieldAsString(reader["Max"]);
+            var count = FieldAsInt(reader["count"]);
+
+            Debug.WriteLine($"Record Count for {tableName} ({fuelType}) is {count}");
 
             if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
             {
@@ -170,9 +183,12 @@ public partial class SqLiteHelper
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             var reader = command.ExecuteReader();
-            while (reader.Read())
+            if (reader.HasRows)
             {
-                result = true;
+                while (reader.Read())
+                {
+                    result = true;
+                }
             }
         }
 
@@ -182,6 +198,19 @@ public partial class SqLiteHelper
     private string FieldAsString(object field)
     {
         return $"{field}";
+    }
+
+    private int FieldAsInt(object field)
+    {
+        var temp = $"{field}";
+        if (string.IsNullOrEmpty(temp))
+        {
+            return 0;
+        }
+        else
+        {
+            return int.Parse(temp);
+        }
     }
 
     private double FieldAsDouble(object field)

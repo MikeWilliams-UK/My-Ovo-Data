@@ -7,11 +7,13 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
 
 namespace OvoData.Forms
 {
@@ -84,6 +86,8 @@ namespace OvoData.Forms
             }
             else
             {
+                SetMouseCursor();
+
                 WriteToRegistry();
 
                 SetStatusText("Connecting ...");
@@ -111,6 +115,8 @@ namespace OvoData.Forms
                         }
                     }
                 }
+
+                ClearDown();
             }
         }
 
@@ -154,8 +160,8 @@ namespace OvoData.Forms
 
         private void OnClick_ReadUsage(object sender, RoutedEventArgs e)
         {
+            SetMouseCursor();
             SetStateOfControls(false);
-            _cancelRequested = false;
 
             try
             {
@@ -309,6 +315,9 @@ namespace OvoData.Forms
             var sqlite = new SqLiteHelper(_selectedAccount.Id);
             AccountInformation.ItemsSource = sqlite.GetUsageInformation();
 
+            Mouse.OverrideCursor = null;
+            _cancelRequested = false;
+
             SetStatusText("");
             SetStateOfControls(true);
 
@@ -356,6 +365,9 @@ namespace OvoData.Forms
         {
             try
             {
+                SetMouseCursor();
+                SetStateOfControls(false);
+
                 var supplyPoints = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
 
                 SetStatusText("Updating values");
@@ -372,6 +384,11 @@ namespace OvoData.Forms
 
                         foreach (var register in meter.Registers)
                         {
+                            if (_cancelRequested)
+                            {
+                                break;
+                            }
+
                             sqlite.UpsertMeterRegisters(register, supplyPoint.FuelType);
                         }
                     }
@@ -384,6 +401,11 @@ namespace OvoData.Forms
 
                         idx++;
                         records++;
+
+                        if (_cancelRequested)
+                        {
+                            break;
+                        }
 
                         if (idx >= 25)
                         {
@@ -402,6 +424,13 @@ namespace OvoData.Forms
             {
                 ClearDown();
             }
+        }
+
+        private void SetMouseCursor()
+        {
+            Mouse.OverrideCursor = Cursors.Wait;
+            CancelOperations.Cursor = Cursors.Arrow;
+            CancelOperations.ForceCursor = true;
         }
 
         private void OnClick_ExportReadings(object sender, RoutedEventArgs e)

@@ -75,9 +75,9 @@ public partial class SqLiteHelper
             stringBuilder.AppendLine($"('{reading.Date}', '{reading.MeterSerialNumber}', '{fuelType}',");
             stringBuilder.AppendLine($" '{reading.LifeCycle}','{reading.RegisterId}', '{reading.Source}',");
             stringBuilder.AppendLine($" '{reading.TimingCategory}','{reading.Type}', '{reading.Value}')");
-            stringBuilder.AppendLine("ON CONFLICT (Date)");
+            stringBuilder.AppendLine("ON CONFLICT (Date, FuelType)");
             stringBuilder.AppendLine("DO UPDATE SET");
-            stringBuilder.AppendLine("  Date = excluded.Date, MeterSerialNumber = excluded.MeterSerialNumber, FuelType = excluded.FuelType,");
+            stringBuilder.AppendLine("  Date = excluded.Date, FuelType = excluded.FuelType, MeterSerialNumber = excluded.MeterSerialNumber,");
             stringBuilder.AppendLine("  LifeCycle = excluded.LifeCycle, RegisterId = excluded.RegisterId, Source = excluded.Source,");
             stringBuilder.AppendLine("  TimingCategory = excluded.TimingCategory, Type = excluded.Type, Value = excluded.Value");
 
