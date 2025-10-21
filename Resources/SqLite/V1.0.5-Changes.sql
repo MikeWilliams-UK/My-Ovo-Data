@@ -1,6 +1,7 @@
 ﻿-- Drop V1.04 and earlier surplus table
 -- DROP TABLE Information;
 
+-- Create new tables for V1.0.5
 CREATE TABLE SupplyPoints (Sprn STRING PRIMARY KEY UNIQUE NOT NULL, FuelType STRING NOT NULL);
 
 CREATE TABLE Meters (SerialNumber STRING PRIMARY KEY UNIQUE NOT NULL, FuelType STRING NOT NULL, MeterType STRING, Status STRING);

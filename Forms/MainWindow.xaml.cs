@@ -143,7 +143,7 @@ namespace OvoData.Forms
 
                 SetStatusText("Connecting ...");
 
-                if (_httpHelper.FirstLogin(UserName.Text, Password.Password, out var tokens, out var ovoAccounts))
+                if (_httpHelper.Login(UserName.Text, Password.Password, out var tokens, out var ovoAccounts))
                 {
                     Login.IsEnabled = false;
 

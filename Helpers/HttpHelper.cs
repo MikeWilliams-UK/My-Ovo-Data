@@ -11,7 +11,6 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -43,7 +42,7 @@ public class HttpHelper
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public bool FirstLogin(string username, string password, out Tokens tokens, out List<Models.Database.Account> ovoAccounts)
+    public bool Login(string username, string password, out Tokens tokens, out List<Models.Database.Account> ovoAccounts)
     {
         var result = false;
         ovoAccounts = [];
@@ -57,10 +56,10 @@ public class HttpHelper
                 Password = password
             };
 
-            if (ExecuteLoginRequest(_loginRequest, out tokens))
+            if (DoLogin(_loginRequest, out tokens))
             {
-                tokens = ObtainAccessTokens(tokens);
-                ovoAccounts = ObtainAccountDetails(tokens);
+                tokens = DoGetAccessToken(tokens);
+                ovoAccounts = DoGetOvoAccounts(tokens);
                 result = true;
             }
         }
@@ -72,7 +71,7 @@ public class HttpHelper
         return result;
     }
 
-    private bool ExecuteLoginRequest(LoginRequest loginRequest, out Tokens tokens)
+    private bool DoLogin(LoginRequest loginRequest, out Tokens tokens)
     {
         var result = false;
         tokens = new Tokens();
@@ -94,7 +93,7 @@ public class HttpHelper
                 var responseContent = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    _logger.DumpJson("FirstLogin-Response", responseContent);
+                    _logger.DumpJson("Login-Response", responseContent);
                 }
 
                 var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, JsonSerializerOptions);
@@ -171,29 +170,21 @@ public class HttpHelper
         // If Access token has expired and Refresh Token has NOT expired
         if (tokens.AccessTokenExpired && !tokens.RefreshTokenExpired)
         {
-            tokens = ObtainAccessTokens(tokens);
-        }
-        else
-        {
-            tokens = ObtainBothTokens();
+            return DoGetAccessToken(tokens);
         }
 
-        return tokens;
-    }
-
-    private Tokens ObtainBothTokens()
-    {
-        Tokens tokens = new Tokens();
+        // If we get here then we need to obtain both tokens
+        tokens = new Tokens();
 
         if (_loginRequest != null)
         {
-            ExecuteLoginRequest(_loginRequest, out tokens);
+            DoLogin(_loginRequest, out tokens);
         }
 
         return tokens;
     }
 
-    private Tokens ObtainAccessTokens(Tokens tokens)
+    private Tokens DoGetAccessToken(Tokens tokens)
     {
         try
         {
@@ -213,7 +204,7 @@ public class HttpHelper
                 {
                     if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                     {
-                        _logger.DumpJson("ObtainAccessTokens-Response", responseContent);
+                        _logger.DumpJson("DoGetAccessToken-Response", responseContent);
                     }
 
                     tokens.AccessToken = tokenResponse.AccessToken.Value;
@@ -240,7 +231,7 @@ public class HttpHelper
         return tokens;
     }
 
-    private List<Models.Database.Account> ObtainAccountDetails(Tokens tokens)
+    private List<Models.Database.Account> DoGetOvoAccounts(Tokens tokens)
     {
         var result = new List<Models.Database.Account>();
 

@@ -6,12 +6,16 @@ public class Tokens
 {
     public string UserGuid { get; set; } = string.Empty;
 
-    // Access token is short (60 seconds)
+    /// <summary>
+    /// Access Token (60 seconds)
+    /// </summary>
     public string AccessToken { get; set; } = string.Empty;
     public DateTime AccessTokenExpiryTime { get; set; }
     public bool AccessTokenExpired { get; set; } = true;
 
-    // Refresh token is longer (1800 seconds == 30 minutes)
+    /// <summary>
+    /// Refresh Token 1800 seconds (30 minutes)
+    /// </summary>
     public string RefreshToken { get; set; } = string.Empty;
     public DateTime RefreshTokenExpiryTime { get; set; }
     public bool RefreshTokenExpired { get; set; } = true;
