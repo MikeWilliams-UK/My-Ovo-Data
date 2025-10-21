@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -148,14 +149,23 @@ public class HttpHelper
         var now = DateTime.Now;
         Debug.WriteLine($"CheckTokens() Now: {now} Access Token: {tokens.AccessTokenExpiryTime} Refresh Token: {tokens.RefreshTokenExpiryTime}");
 
+        // Perform these checks again, just in case ...
         if (now >= tokens.AccessTokenExpiryTime)
         {
             tokens.AccessTokenExpired = true;
         }
-
         if (now >= tokens.RefreshTokenExpiryTime)
         {
             tokens.RefreshTokenExpired = true;
+        }
+
+        if (tokens.AccessTokenExpired)
+        {
+            _logger.WriteLine($"Access token expired at {tokens.AccessTokenExpiryTime:HH:mm:ss}");
+        }
+        if (tokens.RefreshTokenExpired)
+        {
+            _logger.WriteLine($"Refresh token expired at {tokens.RefreshTokenExpiryTime:HH:mm:ss}");
         }
 
         // If Access token has expired and Refresh Token has NOT expired
@@ -191,15 +201,6 @@ public class HttpHelper
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             request.Headers.Add("restricted_refresh_token", tokens.RefreshToken);
 
-            if (string.IsNullOrEmpty(tokens.AccessToken))
-            {
-                _logger.WriteLine($"Calling API endpoint at Uri: {uri} to obtain access token");
-            }
-            else
-            {
-                _logger.WriteLine($"Calling API endpoint at Uri: {uri} to refresh access token");
-            }
-
             var response = _httpClient1.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
             {
@@ -225,6 +226,10 @@ public class HttpHelper
                     Debug.WriteLine($"Access  Token Expires at {tokens.AccessTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
                     Debug.WriteLine($"Refresh Token Expires at {tokens.RefreshTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
                 }
+            }
+            else
+            {
+                _logger.WriteLine($"{response.StatusCode} {response.ReasonPhrase}");
             }
         }
         catch (Exception exception)

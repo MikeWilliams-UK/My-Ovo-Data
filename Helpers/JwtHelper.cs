@@ -1,17 +1,12 @@
-﻿using System;
+﻿namespace OvoData.Helpers;
 
-namespace OvoData.Helpers;
-
+using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 
 public static class JwtHelper
 {
-    /// <summary>
-    /// Parses and dumps the contents of a JWT token.
-    /// </summary>
-    /// <param name="jwtToken">The JWT token string.</param>
-    /// <returns>A formatted JSON string of the token's payload.</returns>
     public static string DumpJwt(string jwtToken)
     {
         try
@@ -19,11 +14,22 @@ public static class JwtHelper
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(jwtToken);
 
-            // Extract the payload (claims)
             var payload = token.Payload;
+            var convertedPayload = new Dictionary<string, object>();
 
-            // Serialize the payload to a formatted JSON string
-            var jsonPayload = JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            foreach (var kvp in payload)
+            {
+                if (kvp.Key == "exp" || kvp.Key == "iat")
+                {
+                    var dateTime = DateTimeOffset.FromUnixTimeSeconds((long)kvp.Value).ToLocalTime();
+                    convertedPayload[kvp.Key] = $"{dateTime:yyyy-MM-dd HH:mm:ss}";
+                    continue;
+                }
+
+                convertedPayload[kvp.Key] = kvp.Value;
+            }
+
+            var jsonPayload = JsonSerializer.Serialize(convertedPayload, new JsonSerializerOptions
             {
                 WriteIndented = true
             });
