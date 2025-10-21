@@ -9,17 +9,18 @@ public static class DateHelper
         return $"{value:yyyy-MM-dd}";
     }
 
-    public static string LogFileSuffix(bool addMs = false)
+    public static string LogFileSuffix()
     {
-        return addMs
-            ? $"{DateTime.Now:yyyy-MM-dd HH-mm-ss.fff}"
-            : $"{DateTime.Now:yyyy-MM-dd HH-mm-ss}";
+        return $"{DateTime.Now:yyyy-MM-dd HH-mm-ss.fff}";
     }
 
+    public static string LogFileSuffix(string suffix)
+    {
+        return $"{DateTime.Now:yyyy-MM-dd} {suffix}";
+    }
 
     public static string LogEntryTimestamp()
     {
-        return $"{DateTime.Now:yyyy-MM-dd HH;mm:ss.fff}";
+        return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}";
     }
-
 }

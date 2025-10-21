@@ -11,9 +11,12 @@ namespace OvoData.Helpers;
 public partial class SqLiteHelper
 {
     private readonly string _dataFile;
+    private Logger _logger;
 
-    public SqLiteHelper(string account)
+    public SqLiteHelper(string account, Logger logger)
     {
+        _logger = logger;
+
         var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Constants.ApplicationName);
         if (!Directory.Exists(folder))
         {

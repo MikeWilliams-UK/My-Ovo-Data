@@ -24,7 +24,7 @@ public partial class SqLiteHelper
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             result = Convert.ToInt32(command.ExecuteScalar());
 
-            Logger.WriteLine($"  Table Monthly{fuelType} has {result} records like '{year}%'");
+            _logger.WriteLine($"  Table Monthly{fuelType} has {result} records like '{year}%'");
         }
 
         return result;
@@ -106,7 +106,7 @@ public partial class SqLiteHelper
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             result = Convert.ToInt32(command.ExecuteScalar());
 
-            Logger.WriteLine($"  Table Daily{type} has {result} records like '{year}-{month:D2}%'");
+            _logger.WriteLine($"  Table Daily{type} has {result} records like '{year}-{month:D2}%'");
         }
 
         return result;
@@ -195,7 +195,7 @@ public partial class SqLiteHelper
             result = Convert.ToBoolean(command.ExecuteScalar());
         }
 
-        Logger.WriteLine($"  Daily{type} Half Hour records for '{year}-{month:D2}-{day:D2}' are available {result}");
+        _logger.WriteLine($"  Daily{type} Half Hour records for '{year}-{month:D2}-{day:D2}' are available {result}");
         return result;
     }
 
@@ -214,7 +214,7 @@ public partial class SqLiteHelper
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             result = Convert.ToInt32(command.ExecuteScalar());
 
-            Logger.WriteLine($"  Table Daily{type} has {result} records like '{year}-{month:D2}-{day:D2}%'");
+            _logger.WriteLine($"  Table Daily{type} has {result} records like '{year}-{month:D2}-{day:D2}%'");
         }
 
         return result;

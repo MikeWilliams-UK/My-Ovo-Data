@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Threading;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
@@ -31,7 +30,9 @@ namespace OvoData.Forms
 
         private string _stopWhen = string.Empty;
 
-        private HttpHelper _httpHelper;
+        private HttpHelper? _httpHelper;
+
+        private Logger _logger;
 
         public MainWindow()
         {
@@ -42,7 +43,7 @@ namespace OvoData.Forms
 
             InitializeComponent();
 
-            _httpHelper = new HttpHelper(_configuration);
+            _logger = new Logger();
             _tokens = new Tokens();
             _selectedAccount = new Account();
         }
@@ -58,6 +59,14 @@ namespace OvoData.Forms
             StopWhen.SelectedIndex = 0;
 
             SetStatusText("Please log in to your account");
+            if (!Debugger.IsAttached)
+            {
+                DebugHelper.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                DebugHelper.Text = "";
+            }
         }
 
         private void ReadFromRegistry()
@@ -80,6 +89,9 @@ namespace OvoData.Forms
 
         private void OnClick_Login(object sender, RoutedEventArgs e)
         {
+            _logger = new Logger();
+            _httpHelper = new HttpHelper(_configuration, _logger);
+
             if (string.IsNullOrEmpty(UserName.Text) && string.IsNullOrEmpty(Password.Password))
             {
                 MessageBox.Show("Username and/or password are blank!", "Input Error");
@@ -128,8 +140,8 @@ namespace OvoData.Forms
                 _selectedAccount = account;
                 SetStateOfControls(true);
 
-                var sqlite = new SqLiteHelper(_selectedAccount.Id);
-                AccountInformation.ItemsSource = sqlite.GetUsageInformation();
+                var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
+                AccountStatistics.ItemsSource = sqlite.GetUsageInformation();
 
                 SetStatusText($"Account Id: {_selectedAccount.Id} selected");
                 Debug.WriteLine($"  HasElectric: {_selectedAccount.HasElectric} from {_selectedAccount.ElectricStartDate}");
@@ -160,6 +172,9 @@ namespace OvoData.Forms
 
         private void OnClick_ReadUsage(object sender, RoutedEventArgs e)
         {
+            _logger = new Logger();
+            _httpHelper = new HttpHelper(_configuration, _logger);
+
             SetMouseCursor();
             SetStateOfControls(false);
 
@@ -173,7 +188,7 @@ namespace OvoData.Forms
 
                 var monthsFetched = 0;
 
-                var sqlite = new SqLiteHelper(_selectedAccount.Id);
+                var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
 
                 while (!_cancelRequested)
                 {
@@ -220,13 +235,13 @@ namespace OvoData.Forms
                                 lastDay = DateTime.Now.Day;
                             }
 
-                            SetStatusText($"Checking Month {year}-{month:D2}");
+                            SetStatusText($"Checking Month {year}-{month:D2}", true);
 
                             if (year == thisYear && month == thisMonth
                                 || sqlite.CountDaily("Electric", year, month) < lastDay
                                 || sqlite.CountDaily("Gas", year, month) < lastDay)
                             {
-                                SetStatusText($"Fetching Daily Usage for account {_selectedAccount.Id} - Month {year}-{month:D2}");
+                                SetStatusText($"Fetching Daily Usage for account {_selectedAccount.Id} - Month {year}-{month:D2}", true);
                                 var daily = _httpHelper.ObtainDailyUsage(_tokens, _selectedAccount.Id, year, month);
 
                                 if (daily.Electricity != null && daily.Electricity.Data != null)
@@ -247,7 +262,7 @@ namespace OvoData.Forms
                                     break;
                                 }
 
-                                SetStatusText($"Checking Day {year}-{month:D2}-{day:D2}");
+                                SetStatusText($"Checking Day {year}-{month:D2}-{day:D2}", true);
 
                                 if (year == thisYear && month == thisMonth && day == thisDay
                                     || (sqlite.HasHalfHourly("Electric", year, month, day)
@@ -255,7 +270,7 @@ namespace OvoData.Forms
                                     || (sqlite.HasHalfHourly("Gas", year, month, day)
                                         && sqlite.CountHalfHourly("Gas", year, month, day) < 48))
                                 {
-                                    SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccount.Id} - Day {year}-{month:D2}-{day:D2}");
+                                    SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccount.Id} - Day {year}-{month:D2}-{day:D2}", true);
                                     var halfHourly = _httpHelper.ObtainHalfHourlyUsage(_tokens, _selectedAccount.Id, year, month, day);
 
                                     if (halfHourly.Electricity != null && halfHourly.Electricity.Data != null)
@@ -301,7 +316,7 @@ namespace OvoData.Forms
             }
             catch (Exception exception)
             {
-                Logger.WriteLine(exception.ToString());
+                _logger.WriteLine(exception.ToString());
                 MessageBox.Show(exception.ToString(), "Exception");
             }
             finally
@@ -312,14 +327,16 @@ namespace OvoData.Forms
 
         private void ClearDown()
         {
-            var sqlite = new SqLiteHelper(_selectedAccount.Id);
-            AccountInformation.ItemsSource = sqlite.GetUsageInformation();
+            var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
+            AccountStatistics.ItemsSource = sqlite.GetUsageInformation();
 
             CursorManager.ClearWaitCursor(CancelOperations);
             _cancelRequested = false;
 
             SetStatusText("");
             SetStateOfControls(true);
+
+            DebugHelper.Text = $"Now: {DateTime.Now:HH:mm:ss} Access: {_tokens.AccessTokenExpiryTime:HH:mm:ss} Refresh: {_tokens.RefreshTokenExpiryTime:HH:mm:ss}";
 
             GC.WaitForPendingFinalizers();
             GC.Collect();
@@ -334,7 +351,7 @@ namespace OvoData.Forms
         {
             SetStateOfControls(false);
 
-            var window = new Export(this)
+            var window = new Export(this, _logger)
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
@@ -349,20 +366,33 @@ namespace OvoData.Forms
             return DateTime.DaysInMonth(year, month);
         }
 
-        public void SetStatusText(string message)
+        public void SetStatusText(string message, bool log = false)
         {
-            Logger.WriteLine(message);
+            if (log)
+            {
+                _logger.WriteLine(message);
+            }
             Status.Text = message;
             DoWpfEvents();
         }
 
         private static void DoWpfEvents()
         {
-            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new ThreadStart(delegate { }));
+            try
+            {
+                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new ThreadStart(delegate { }));
+            }
+            catch
+            {
+                // Nothing we can do here
+            }
         }
 
         private void OnClick_ReadMeterReadings(object sender, RoutedEventArgs e)
         {
+            _logger = new Logger();
+            _httpHelper = new HttpHelper(_configuration, _logger);
+
             try
             {
                 SetMouseCursor();
@@ -370,12 +400,14 @@ namespace OvoData.Forms
 
                 var supplyPoints = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
 
-                SetStatusText("Updating values");
+                SetStatusText("Updating meter readings ...", true);
 
-                var sqlite = new SqLiteHelper(_selectedAccount.Id);
+                var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
 
                 foreach (var supplyPoint in supplyPoints)
                 {
+                    var fuelType = StringHelper.ProperCase(supplyPoint.FuelType);
+
                     sqlite.UpsertSupplyPoint(supplyPoint);
 
                     foreach (var meter in supplyPoint.Meters)
@@ -392,10 +424,12 @@ namespace OvoData.Forms
 
                             sqlite.UpsertMeterRegisters(register, supplyPoint.FuelType);
                         }
+                        _logger.WriteLine($"Saved {meter.Registers.Count} {fuelType} Meter Registers");
                     }
+                    _logger.WriteLine($"Saved {supplyPoint.Meters.Count} {fuelType} Meters");
 
-                    int idx = 0;
-                    int records = 0;
+                    var idx = 0;
+                    var records = 0;
                     foreach (var reading in supplyPoint.Readings)
                     {
                         sqlite.UpsertMeterReading(reading, supplyPoint.FuelType);
@@ -412,14 +446,18 @@ namespace OvoData.Forms
                         if (idx >= 25)
                         {
                             idx = 0;
-                            SetStatusText($"Saved {records} {StringHelper.ProperCase(supplyPoint.FuelType)} readings");
+                            SetStatusText($"Saved {records} {fuelType} readings");
                         }
                     }
+
+                    _logger.WriteLine($"Saved {records} {fuelType} readings");
                 }
+
+                _logger.WriteLine($"Saved {supplyPoints.Count} Supply Points");
             }
             catch (Exception exception)
             {
-                Logger.WriteLine(exception.ToString());
+                _logger.WriteLine(exception.ToString());
                 MessageBox.Show(exception.ToString(), "Exception");
             }
             finally

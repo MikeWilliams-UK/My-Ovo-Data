@@ -19,16 +19,19 @@ namespace OvoData.Forms
     /// </summary>
     public partial class Export : Window
     {
+        public MainWindow ParentWindow { get; set; }
+        public string Account { get; set; } = string.Empty;
+
         private SortedDictionary<string, MonthlyData> _monthlyData = new();
         private SortedDictionary<string, DailyData> _dailyData = new();
         private SortedDictionary<string, HalfHourlyData> _halfHourlyData = new();
 
-        public MainWindow ParentWindow { get; set; }
-        public string Account { get; set; } = string.Empty;
+        private Logger _logger;
 
-        public Export(MainWindow parent)
+        public Export(MainWindow parent, Logger logger)
         {
             ParentWindow = parent;
+            _logger = logger;
             InitializeComponent();
         }
 
@@ -36,6 +39,8 @@ namespace OvoData.Forms
         {
             try
             {
+                _logger = new Logger();
+
                 if (sender is Button button)
                 {
                     Excel.IsEnabled = false;
@@ -55,12 +60,12 @@ namespace OvoData.Forms
                     }
                 }
 
-                ParentWindow.SetStatusText("Data exported");
+                ParentWindow.SetStatusText("Data exported", true);
                 Close();
             }
             catch (Exception exception)
             {
-                Logger.WriteLine(exception.ToString());
+                _logger.WriteLine(exception.ToString());
                 MessageBox.Show(exception.ToString(), "Exception");
             }
         }
@@ -260,11 +265,14 @@ namespace OvoData.Forms
 
         private void CollectData()
         {
-            var helper = new SqLiteHelper(Account);
+            var helper = new SqLiteHelper(Account, _logger);
+
             ParentWindow.SetStatusText("Fetching Monthly data");
             _monthlyData = GetMonthlyData(helper);
+
             ParentWindow.SetStatusText("Fetching Daily data");
             _dailyData = GetDailyData(helper);
+
             ParentWindow.SetStatusText("Fetching Half Hourly data");
             _halfHourlyData = GetHalfHourlyData(helper);
         }

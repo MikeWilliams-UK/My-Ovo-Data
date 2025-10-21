@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace OvoData.Models.Database.Readings;
+﻿namespace OvoData.Models.Database.Readings;
 
 public class Register
 {

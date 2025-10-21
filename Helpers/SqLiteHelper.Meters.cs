@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32;
-using OvoData.Models.Database;
+﻿using OvoData.Models.Database;
 using OvoData.Models.Database.Readings;
 using System.Data.SQLite;
 using System.Text;
@@ -51,7 +50,7 @@ public partial class SqLiteHelper
 
             stringBuilder.AppendLine("INSERT INTO MeterRegisters");
             stringBuilder.AppendLine("VALUES");
-            stringBuilder.AppendLine($"('{register.StartDate }', '{register.EndDate}', '{fuelType}',");
+            stringBuilder.AppendLine($"('{register.StartDate}', '{register.EndDate}', '{fuelType}',");
             stringBuilder.AppendLine($" '{register.Id}','{register.TimingCategory}', '{register.UnitOfMeasurement}')");
             stringBuilder.AppendLine("ON CONFLICT (StartDate)");
             stringBuilder.AppendLine("DO UPDATE SET");
@@ -61,7 +60,6 @@ public partial class SqLiteHelper
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             command.ExecuteNonQuery();
         }
-
     }
 
     public void UpsertMeterReading(Reading reading, string fuelType)

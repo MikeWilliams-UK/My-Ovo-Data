@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.EMMA;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using OvoData.Models.Api.Account;
 using OvoData.Models.Api.Login;
 using OvoData.Models.Api.Readings;
@@ -26,11 +25,13 @@ public class HttpHelper
 
     private readonly IConfigurationRoot _configuration;
     private LoginRequest? _loginRequest = null;
+    private Logger _logger;
 
-    public HttpHelper(IConfigurationRoot configuration)
+    public HttpHelper(IConfigurationRoot configuration, Logger logger)
     {
         ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         _configuration = configuration;
+        _logger = logger;
     }
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
@@ -64,7 +65,7 @@ public class HttpHelper
         }
         catch (Exception exception)
         {
-            Logger.WriteLine(exception.ToString());
+            _logger.WriteLine(exception.ToString());
         }
 
         return result;
@@ -80,7 +81,7 @@ public class HttpHelper
         var requestContent = JsonSerializer.Serialize(loginRequest, JsonSerializerOptions);
         request.Content = new StringContent(requestContent, Encoding.ASCII, "application/json");
 
-        Logger.WriteLine($"Logging in as {loginRequest.Username}");
+        _logger.WriteLine($"Calling API endpoint at Uri: {uri} to Log in as '{loginRequest.Username}'");
 
         var response = _httpClient1.SendAsync(request).Result;
         if (response.IsSuccessStatusCode)
@@ -88,7 +89,7 @@ public class HttpHelper
             var responseContent = response.Content.ReadAsStringAsync().Result;
             if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
             {
-                Logger.DumpJson("FirstLogin-Response", responseContent);
+                _logger.DumpJson("FirstLogin-Response", responseContent);
             }
             var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, JsonSerializerOptions);
             if (loginResponse != null)
@@ -124,6 +125,23 @@ public class HttpHelper
         return result;
     }
 
+    private Tokens CheckTokens(Tokens tokens)
+    {
+        var now = DateTime.Now;
+        Debug.WriteLine($"CheckTokens() Now: {now} Refresh Token: {tokens.RefreshTokenExpiryTime} Access Token: {tokens.AccessTokenExpiryTime}");
+
+        if (now >= tokens.AccessTokenExpiryTime)
+        {
+            tokens = ObtainAccessTokens(tokens);
+        }
+        else if (now >= tokens.RefreshTokenExpiryTime)
+        {
+            tokens = ObtainBothTokens();
+        }
+
+        return tokens;
+    }
+
     private Tokens ObtainBothTokens()
     {
         Tokens tokens = new Tokens();
@@ -144,11 +162,11 @@ public class HttpHelper
 
         if (string.IsNullOrEmpty(tokens.AccessToken))
         {
-            Logger.WriteLine("Obtaining access token");
+            _logger.WriteLine($"Calling API endpoint at Uri: {uri} to obtain access token");
         }
         else
         {
-            Logger.WriteLine("Refreshing access token");
+            _logger.WriteLine($"Calling API endpoint at Uri: {uri} to refresh access token"); 
         }
 
         var response = _httpClient1.SendAsync(request).Result;
@@ -177,7 +195,8 @@ public class HttpHelper
 
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, _configuration["AccountsUri"]!);
+            var uri = new Uri(_configuration["AccountsUri"]!);
+            var request = new HttpRequestMessage(HttpMethod.Post, uri);
             request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
 
             var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Accounts.query").Split(Environment.NewLine));
@@ -187,7 +206,7 @@ public class HttpHelper
             var content = new StringContent(graphQl, null, "application/json");
             request.Content = content;
 
-            Logger.WriteLine("Obtaining account details");
+            _logger.WriteLine($"Calling API endpoint at Uri: {uri} to obtain account details");
 
             var response = _httpClient2.SendAsync(request).Result;
             response.EnsureSuccessStatusCode();
@@ -196,7 +215,7 @@ public class HttpHelper
                 var responseContent = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson("Accounts-Response", JsonHelper.Prettify(responseContent));
+                    _logger.DumpJson("Accounts-Response", JsonHelper.Prettify(responseContent));
                 }
                 var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, JsonSerializerOptions);
                 if (accountsResponse != null)
@@ -233,7 +252,7 @@ public class HttpHelper
         }
         catch (Exception exception)
         {
-            Logger.WriteLine(exception.ToString());
+            _logger.WriteLine(exception.ToString());
         }
 
         return result;
@@ -245,20 +264,13 @@ public class HttpHelper
 
         try
         {
-            if (DateTime.Now > tokens.RefreshTokenExpiryTime)
-            {
-                tokens = ObtainBothTokens();
-            }
-            else if (DateTime.Now > tokens.AccessTokenExpiryTime)
-            {
-                tokens = ObtainAccessTokens(tokens);
-            }
+            tokens = CheckTokens(tokens);
 
             var uri = string.Format(_configuration["MonthlyUri"]!, accountId, year);
-            Logger.WriteLine($"Uri: {uri}");
-
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+
+            _logger.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -266,14 +278,14 @@ public class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson($"{nameof(ObtainMonthlyUsage)}-{year}", content);
+                    _logger.DumpJson($"{nameof(ObtainMonthlyUsage)}-{year}", content);
                 }
                 result = JsonSerializer.Deserialize<MonthlyResponse>(content, JsonSerializerOptions);
             }
         }
         catch (Exception exception)
         {
-            Logger.WriteLine(exception.ToString());
+            _logger.WriteLine(exception.ToString());
         }
 
         return result!;
@@ -285,17 +297,10 @@ public class HttpHelper
 
         try
         {
-            if (DateTime.Now > tokens.RefreshTokenExpiryTime)
-            {
-                tokens = ObtainBothTokens();
-            }
-            else if (DateTime.Now > tokens.AccessTokenExpiryTime)
-            {
-                tokens = ObtainAccessTokens(tokens);
-            }
+            tokens = CheckTokens(tokens);
 
             var uri = string.Format(_configuration["DailyUri"]!, accountId, $"{year}-{month:D2}");
-            Logger.WriteLine($"Uri: {uri}");
+            _logger.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
@@ -306,14 +311,14 @@ public class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson($"{nameof(ObtainDailyUsage)}-{year}-{month:D2}", content);
+                    _logger.DumpJson($"{nameof(ObtainDailyUsage)}-{year}-{month:D2}", content);
                 }
                 result = JsonSerializer.Deserialize<DailyResponse>(content, JsonSerializerOptions);
             }
         }
         catch (Exception exception)
         {
-            Logger.WriteLine(exception.ToString());
+            _logger.WriteLine(exception.ToString());
         }
 
         return result;
@@ -325,17 +330,10 @@ public class HttpHelper
 
         try
         {
-            if (DateTime.Now > tokens.RefreshTokenExpiryTime)
-            {
-                tokens = ObtainBothTokens();
-            }
-            else if (DateTime.Now > tokens.AccessTokenExpiryTime)
-            {
-                tokens = ObtainAccessTokens(tokens);
-            }
+            tokens = CheckTokens(tokens);
 
             var uri = string.Format(_configuration["HalfHourlyUri"]!, accountId, $"{year}-{month:D2}-{day:D2}");
-            Logger.WriteLine($"Uri: {uri}");
+            _logger.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
@@ -346,14 +344,14 @@ public class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson($"{nameof(ObtainHalfHourlyUsage)}-{year}-{month:D2}-{day:D2}", content);
+                    _logger.DumpJson($"{nameof(ObtainHalfHourlyUsage)}-{year}-{month:D2}-{day:D2}", content);
                 }
                 result = JsonSerializer.Deserialize<HalfHourlyResponse>(content, JsonSerializerOptions);
             }
         }
         catch (Exception exception)
         {
-            Logger.WriteLine(exception.ToString());
+            _logger.WriteLine(exception.ToString());
         }
 
         return result;
@@ -365,26 +363,20 @@ public class HttpHelper
 
         try
         {
-            if (DateTime.Now > tokens.RefreshTokenExpiryTime)
-            {
-                tokens = ObtainBothTokens();
-            }
-            else if (DateTime.Now > tokens.AccessTokenExpiryTime)
-            {
-                tokens = ObtainAccessTokens(tokens);
-            }
-
-            var request = new HttpRequestMessage(HttpMethod.Post, _configuration["ReadingsUri"]!);
-            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+            tokens = CheckTokens(tokens);
 
             var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Readings.query").Split(Environment.NewLine));
             var graphQl = ResourceHelper.GetStringResource("GraphQL.Readings.json");
             graphQl = graphQl.Replace("[[accountId]]", accountId).Replace("[[query]]", query);
 
+            var uri = new Uri(_configuration["ReadingsUri"]!);
+            var request = new HttpRequestMessage(HttpMethod.Post, uri);
+            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+
             var content = new StringContent(graphQl, null, "application/json");
             request.Content = content;
 
-            Logger.WriteLine("Obtaining meter readings");
+            _logger.WriteLine($"Calling API endpoint at Uri: {uri} to obtain meter readings");
 
             var response = _httpClient2.SendAsync(request).Result;
             response.EnsureSuccessStatusCode();
@@ -394,7 +386,7 @@ public class HttpHelper
 
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson("MeterReadings-Response", JsonHelper.Prettify(responseContent));
+                    _logger.DumpJson("MeterReadings-Response", JsonHelper.Prettify(responseContent));
                 }
                 var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
                 if (readingsResponse != null)
@@ -555,7 +547,7 @@ public class HttpHelper
         }
         catch (Exception exception)
         {
-            Logger.WriteLine(exception.ToString());
+            _logger.WriteLine(exception.ToString());
             Debugger.Break();
         }
 
