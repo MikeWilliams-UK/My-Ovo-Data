@@ -315,7 +315,7 @@ namespace OvoData.Forms
             var sqlite = new SqLiteHelper(_selectedAccount.Id);
             AccountInformation.ItemsSource = sqlite.GetUsageInformation();
 
-            Mouse.OverrideCursor = null;
+            CursorManager.ClearWaitCursor(CancelOperations);
             _cancelRequested = false;
 
             SetStatusText("");
@@ -384,6 +384,7 @@ namespace OvoData.Forms
 
                         foreach (var register in meter.Registers)
                         {
+                            DoWpfEvents();
                             if (_cancelRequested)
                             {
                                 break;
@@ -402,6 +403,7 @@ namespace OvoData.Forms
                         idx++;
                         records++;
 
+                        DoWpfEvents();
                         if (_cancelRequested)
                         {
                             break;
@@ -410,7 +412,7 @@ namespace OvoData.Forms
                         if (idx >= 25)
                         {
                             idx = 0;
-                            SetStatusText($"Written {records} {StringHelper.ProperCase(supplyPoint.FuelType)} readings");
+                            SetStatusText($"Saved {records} {StringHelper.ProperCase(supplyPoint.FuelType)} readings");
                         }
                     }
                 }
@@ -428,9 +430,7 @@ namespace OvoData.Forms
 
         private void SetMouseCursor()
         {
-            Mouse.OverrideCursor = Cursors.Wait;
-            CancelOperations.Cursor = Cursors.Arrow;
-            CancelOperations.ForceCursor = true;
+            CursorManager.SetWaitCursorExcept(CancelOperations);
         }
 
         private void OnClick_ExportReadings(object sender, RoutedEventArgs e)
