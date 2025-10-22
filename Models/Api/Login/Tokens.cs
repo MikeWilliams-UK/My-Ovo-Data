@@ -15,7 +15,7 @@ public class Tokens
     public bool AccessTokenExpired { get; set; } = true;
 
     /// <summary>
-    /// Refresh Token 1800 seconds (30 minutes)
+    /// Refresh Token (1800 seconds [30 minutes])
     /// </summary>
     public string RefreshToken { get; set; } = string.Empty;
 

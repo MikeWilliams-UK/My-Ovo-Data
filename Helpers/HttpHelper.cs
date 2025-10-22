@@ -56,7 +56,6 @@ public class HttpHelper
     {
         var result = false;
         ovoAccounts = [];
-        Tokens = new Tokens();
 
         try
         {
@@ -84,7 +83,6 @@ public class HttpHelper
     private bool DoLogin(LoginRequest loginRequest)
     {
         var result = false;
-        Tokens = new Tokens();
 
         try
         {
@@ -161,19 +159,12 @@ public class HttpHelper
     {
         var now = DateTime.Now;
 
-        // Perform these checks again, just in case ...
-        if (now >= Tokens.AccessTokenExpiryTime)
-        {
-            Tokens.AccessTokenExpired = true;
-        }
-        if (now >= Tokens.RefreshTokenExpiryTime)
-        {
-            Tokens.RefreshTokenExpired = true;
-        }
+        Tokens.AccessTokenExpired = now >= Tokens.AccessTokenExpiryTime;
+        Tokens.RefreshTokenExpired = now >= Tokens.RefreshTokenExpiryTime;
 
         if (Tokens.AccessTokenExpired)
         {
-            _logger?.WriteLine($"Access token expired at {Tokens.AccessTokenExpiryTime:HH:mm:ss}");
+            Debug.WriteLine($"Access token expired at {Tokens.AccessTokenExpiryTime:HH:mm:ss}");
         }
         if (Tokens.RefreshTokenExpired)
         {

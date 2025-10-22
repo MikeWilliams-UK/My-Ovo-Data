@@ -59,32 +59,27 @@ namespace OvoData.Forms
 
         private void OnTick_Timer(object? sender, EventArgs e)
         {
-            var now = DateTime.Now;
-            Value1.Text = $"{now:HH:mm:ss}";
+            UpdateDebugHelper();
+        }
 
-            if (!string.IsNullOrEmpty(_httpHelper.Tokens.UserGuid))
+        private void UpdateDebugHelper()
+        {
+            if (Debugger.IsAttached)
             {
-                Value2.Text = $"{_httpHelper.Tokens.AccessTokenExpiryTime:HH:mm:ss}";
-                if (now >= _httpHelper.Tokens.AccessTokenExpiryTime)
-                {
-                    _httpHelper.Tokens.AccessTokenExpired = true;
-                    Value2.Foreground = Brushes.Red;
-                }
-                else
-                {
-                    Value2.Foreground = Brushes.Green;
-                }
+                var now = DateTime.Now;
+                Value1.Text = $"{now:HH:mm:ss}";
 
+                _httpHelper.Tokens.AccessTokenExpired = now >= _httpHelper.Tokens.AccessTokenExpiryTime;
+                Value2.Text = $"{_httpHelper.Tokens.AccessTokenExpiryTime:HH:mm:ss}";
+                Value2.Foreground = _httpHelper.Tokens.AccessTokenExpired ? Brushes.Red : Brushes.Green;
+
+                _httpHelper.Tokens.RefreshTokenExpired = now >= _httpHelper.Tokens.RefreshTokenExpiryTime;
                 Value3.Text = $"{_httpHelper.Tokens.RefreshTokenExpiryTime:HH:mm:ss}";
-                if (now >= _httpHelper.Tokens.RefreshTokenExpiryTime)
-                {
-                    _httpHelper.Tokens.RefreshTokenExpired = true;
-                    Value3.Foreground = Brushes.Red;
-                }
-                else
-                {
-                    Value3.Foreground = Brushes.Green;
-                }
+                Value3.Foreground = _httpHelper.Tokens.RefreshTokenExpired ? Brushes.Red : Brushes.Green;
+
+                TokensVisualiser.InvalidateVisual();
+                TokensVisualiser.InvalidateArrange();
+                TokensVisualiser.InvalidateMeasure();
             }
         }
 
@@ -164,6 +159,7 @@ namespace OvoData.Forms
                 }
 
                 ClearDown();
+                ShowAccountInfo();
             }
         }
 
@@ -179,8 +175,6 @@ namespace OvoData.Forms
                 AccountStatistics.ItemsSource = sqlite.GetUsageInformation();
 
                 SetStatusText($"Account Id: {_selectedAccount.Id} selected");
-                Debug.WriteLine($"  HasElectric: {_selectedAccount.HasElectric} from {_selectedAccount.ElectricStartDate}");
-                Debug.WriteLine($"  HasGas:      {_selectedAccount.HasGas} from {_selectedAccount.GasStartDate}");
             }
         }
 
@@ -360,11 +354,16 @@ namespace OvoData.Forms
             }
         }
 
-        private void ClearDown()
+        private void ShowAccountInfo()
         {
             var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger!);
             AccountStatistics.ItemsSource = sqlite.GetUsageInformation();
 
+            SetStatusText($"Account Id: {_selectedAccount.Id} selected");
+        }
+
+        private void ClearDown()
+        {
             CursorManager.ClearWaitCursor(CancelOperations);
             _cancelRequested = false;
 
@@ -408,6 +407,7 @@ namespace OvoData.Forms
                 _logger?.WriteLine(message);
             }
             Status.Text = message;
+            UpdateDebugHelper();
             DoWpfEvents();
         }
 
@@ -459,7 +459,7 @@ namespace OvoData.Forms
 
                             sqlite.UpsertMeterRegisters(register, supplyPoint.FuelType);
                         }
-                        _logger?.WriteLine($"Saved {meter.Registers.Count} {fuelType} Meter Registers");
+                        _logger?.WriteLine($"Saved {meter.Registers.Count} {fuelType} Meter Registers for Meter {meter.SerialNumber}");
                     }
                     _logger?.WriteLine($"Saved {supplyPoint.Meters.Count} {fuelType} Meters");
 
