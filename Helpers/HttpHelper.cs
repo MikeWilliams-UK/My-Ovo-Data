@@ -24,9 +24,13 @@ public class HttpHelper
     private readonly HttpClient _httpClient3 = new();
 
     private readonly IConfigurationRoot _configuration;
-    private LoginRequest? _loginRequest = null;
+    private LoginRequest? _loginRequest;
     private Logger? _logger;
 
+    /// <summary>
+    /// This helper <b>MUST</b> only be instantiated ONCE, otherwise obtaining subsequent Access Tokens fails.
+    /// </summary>
+    /// <param name="configuration"></param>
     public HttpHelper(IConfigurationRoot configuration)
     {
         ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
