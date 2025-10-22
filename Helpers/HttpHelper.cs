@@ -27,6 +27,8 @@ public class HttpHelper
     private LoginRequest? _loginRequest;
     private Logger? _logger;
 
+    public Tokens Tokens { get; set; } = new();
+
     /// <summary>
     /// This helper <b>MUST</b> only be instantiated ONCE, otherwise obtaining subsequent Access Tokens fails.
     /// </summary>
@@ -50,11 +52,11 @@ public class HttpHelper
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public bool Login(string username, string password, out Tokens tokens, out List<Models.Account> ovoAccounts)
+    public bool Login(string username, string password, out List<Models.Account> ovoAccounts)
     {
         var result = false;
         ovoAccounts = [];
-        tokens = new Tokens();
+        Tokens = new Tokens();
 
         try
         {
@@ -64,10 +66,10 @@ public class HttpHelper
                 Password = password
             };
 
-            if (DoLogin(_loginRequest, out tokens))
+            if (DoLogin(_loginRequest))
             {
-                tokens = DoGetAccessToken(tokens);
-                ovoAccounts = DoGetOvoAccounts(tokens);
+                DoGetAccessToken();
+                ovoAccounts = DoGetOvoAccounts();
                 result = true;
             }
         }
@@ -79,10 +81,10 @@ public class HttpHelper
         return result;
     }
 
-    private bool DoLogin(LoginRequest loginRequest, out Tokens tokens)
+    private bool DoLogin(LoginRequest loginRequest)
     {
         var result = false;
-        tokens = new Tokens();
+        Tokens = new Tokens();
 
         try
         {
@@ -105,7 +107,7 @@ public class HttpHelper
                 var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, JsonSerializerOptions);
                 if (loginResponse != null)
                 {
-                    tokens.UserGuid = loginResponse.UserId;
+                    Tokens.UserGuid = loginResponse.UserId;
                     Debug.WriteLine($"UserName: {loginResponse.UserName}");
                     Debug.WriteLine($"UserGuid: {loginResponse.UserId}");
                 }
@@ -130,12 +132,11 @@ public class HttpHelper
                     var cookie = cookies.FirstOrDefault(c => c.Name == "restricted_refresh_token");
                     if (cookie != null)
                     {
-                        tokens.RefreshToken = cookie.Value;
-                        //tokens.RefreshTokenExpiryTime = cookie.Expires;
-                        tokens.RefreshTokenExpiryTime = DateTime.Now.AddSeconds(120);
-                        tokens.RefreshTokenExpired = false;
+                        Tokens.RefreshToken = cookie.Value;
+                        Tokens.RefreshTokenExpiryTime = cookie.Expires;
+                        Tokens.RefreshTokenExpired = false;
 
-                        _logger?.DumpJson("Refresh-Token", JwtHelper.DumpJwt(tokens.RefreshToken));
+                        _logger?.DumpJson("Refresh-Token", JwtHelper.DumpJwt(Tokens.RefreshToken));
 
                         result = true;
                     }
@@ -156,57 +157,55 @@ public class HttpHelper
         return result;
     }
 
-    private Tokens CheckTokens(Tokens tokens)
+    private void CheckTokens()
     {
         var now = DateTime.Now;
 
         // Perform these checks again, just in case ...
-        if (now >= tokens.AccessTokenExpiryTime)
+        if (now >= Tokens.AccessTokenExpiryTime)
         {
-            tokens.AccessTokenExpired = true;
+            Tokens.AccessTokenExpired = true;
         }
-        if (now >= tokens.RefreshTokenExpiryTime)
+        if (now >= Tokens.RefreshTokenExpiryTime)
         {
-            tokens.RefreshTokenExpired = true;
-        }
-
-        if (tokens.AccessTokenExpired)
-        {
-            _logger?.WriteLine($"Access token expired at {tokens.AccessTokenExpiryTime:HH:mm:ss}");
-        }
-        if (tokens.RefreshTokenExpired)
-        {
-            _logger?.WriteLine($"Refresh token expired at {tokens.RefreshTokenExpiryTime:HH:mm:ss}");
+            Tokens.RefreshTokenExpired = true;
         }
 
-        if (tokens.RefreshTokenExpired)
+        if (Tokens.AccessTokenExpired)
+        {
+            _logger?.WriteLine($"Access token expired at {Tokens.AccessTokenExpiryTime:HH:mm:ss}");
+        }
+        if (Tokens.RefreshTokenExpired)
+        {
+            _logger?.WriteLine($"Refresh token expired at {Tokens.RefreshTokenExpiryTime:HH:mm:ss}");
+        }
+
+        if (Tokens.RefreshTokenExpired)
         {
             if (_loginRequest != null
-                && DoLogin(_loginRequest, out tokens))
+                && DoLogin(_loginRequest))
             {
-                tokens = DoGetAccessToken(tokens);
+                DoGetAccessToken();
             }
         }
         else
         {
-            if (tokens.AccessTokenExpired)
+            if (Tokens.AccessTokenExpired)
             {
-                tokens = DoGetAccessToken(tokens);
+                DoGetAccessToken();
             }
         }
 
         // Tokens are both valid
-        return tokens;
     }
 
-    private Tokens DoGetAccessToken(Tokens tokens)
+    private void DoGetAccessToken()
     {
         try
         {
             var uri = new Uri(_configuration["TokenUri"]!);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            //request.Headers.Remove("restricted_refresh_token");
-            request.Headers.Add("restricted_refresh_token", tokens.RefreshToken);
+            request.Headers.Add("restricted_refresh_token", Tokens.RefreshToken);
 
             var response = _httpClient1.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -221,15 +220,15 @@ public class HttpHelper
                         _logger?.DumpJson("DoGetAccessToken-Response", responseContent);
                     }
 
-                    tokens.AccessToken = tokenResponse.AccessToken.Value;
-                    tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn);
-                    tokens.AccessTokenExpired = false;
+                    Tokens.AccessToken = tokenResponse.AccessToken.Value;
+                    Tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn);
+                    Tokens.AccessTokenExpired = false;
 
-                    _logger?.DumpJson("Access-Token", JwtHelper.DumpJwt(tokens.AccessToken));
+                    _logger?.DumpJson("Access-Token", JwtHelper.DumpJwt(Tokens.AccessToken));
 
                     Debug.WriteLine($"Current Time             {DateTime.Now:dd-MMM-yyyy HH:mm:ss}");
-                    Debug.WriteLine($"Access  Token Expires at {tokens.AccessTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
-                    Debug.WriteLine($"Refresh Token Expires at {tokens.RefreshTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
+                    Debug.WriteLine($"Access  Token Expires at {Tokens.AccessTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
+                    Debug.WriteLine($"Refresh Token Expires at {Tokens.RefreshTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
                 }
             }
             else
@@ -243,11 +242,9 @@ public class HttpHelper
             _logger?.WriteLine(exception.ToString());
             Debugger.Break();
         }
-
-        return tokens;
     }
 
-    private List<Models.Account> DoGetOvoAccounts(Tokens tokens)
+    private List<Models.Account> DoGetOvoAccounts()
     {
         var result = new List<Models.Account>();
 
@@ -255,11 +252,11 @@ public class HttpHelper
         {
             var uri = new Uri(_configuration["AccountsUri"]!);
             var request = new HttpRequestMessage(HttpMethod.Post, uri);
-            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
 
             var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Accounts.query").Split(Environment.NewLine));
             var graphQl = ResourceHelper.GetStringResource("GraphQL.Accounts.json");
-            graphQl = graphQl.Replace("[[customerGuid]]", tokens.UserGuid).Replace("[[query]]", query);
+            graphQl = graphQl.Replace("[[customerGuid]]", Tokens.UserGuid).Replace("[[query]]", query);
 
             var content = new StringContent(graphQl, null, "application/json");
             request.Content = content;
@@ -322,17 +319,17 @@ public class HttpHelper
         return result;
     }
 
-    public MonthlyResponse ObtainMonthlyUsage(Tokens tokens, string accountId, int year)
+    public MonthlyResponse ObtainMonthlyUsage(string accountId, int year)
     {
         var result = new MonthlyResponse();
 
         try
         {
-            tokens = CheckTokens(tokens);
+            CheckTokens();
 
             var uri = string.Format(_configuration["MonthlyUri"]!, accountId, year);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
 
             _logger?.WriteLine($"Calling API endpoint at Uri: {uri}");
 
@@ -361,19 +358,19 @@ public class HttpHelper
         return result!;
     }
 
-    public DailyResponse ObtainDailyUsage(Tokens tokens, string accountId, int year, int month)
+    public DailyResponse ObtainDailyUsage(string accountId, int year, int month)
     {
         var result = new DailyResponse();
 
         try
         {
-            tokens = CheckTokens(tokens);
+            CheckTokens();
 
             var uri = string.Format(_configuration["DailyUri"]!, accountId, $"{year}-{month:D2}");
             _logger?.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
 
             var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -400,19 +397,19 @@ public class HttpHelper
         return result;
     }
 
-    public HalfHourlyResponse ObtainHalfHourlyUsage(Tokens tokens, string accountId, int year, int month, int day)
+    public HalfHourlyResponse ObtainHalfHourlyUsage(string accountId, int year, int month, int day)
     {
         var result = new HalfHourlyResponse();
 
         try
         {
-            tokens = CheckTokens(tokens);
+            CheckTokens();
 
             var uri = string.Format(_configuration["HalfHourlyUri"]!, accountId, $"{year}-{month:D2}-{day:D2}");
             _logger?.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
 
             var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -439,13 +436,13 @@ public class HttpHelper
         return result;
     }
 
-    public List<Models.SupplyPoint> ObtainMeterReadings(Tokens tokens, string accountId)
+    public List<Models.SupplyPoint> ObtainMeterReadings(string accountId)
     {
         List<Models.SupplyPoint> result = [];
 
         try
         {
-            tokens = CheckTokens(tokens);
+            CheckTokens();
 
             var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Readings.query").Split(Environment.NewLine));
             var graphQl = ResourceHelper.GetStringResource("GraphQL.Readings.json");
@@ -453,7 +450,7 @@ public class HttpHelper
 
             var uri = new Uri(_configuration["ReadingsUri"]!);
             var request = new HttpRequestMessage(HttpMethod.Post, uri);
-            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
 
             var content = new StringContent(graphQl, null, "application/json");
             request.Content = content;

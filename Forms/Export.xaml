@@ -9,8 +9,7 @@
     ResizeMode="NoResize"
     ShowInTaskbar="False"
     SizeToContent="WidthAndHeight"
-    WindowStyle="ToolWindow"
-    mc:Ignorable="d">
+    WindowStyle="ToolWindow">
     <Window.Resources>
         <Path
             x:Key="XlsxPath"
@@ -27,8 +26,8 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="18*" />
-            <ColumnDefinition Width="23*" />
+            <ColumnDefinition Width="11*" />
+            <ColumnDefinition Width="9*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

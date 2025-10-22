@@ -127,7 +127,6 @@
                         Header="To:" />
                 </DataGrid.Columns>
             </DataGrid>
-
         </Grid>
 
         <!--  Controls  -->
@@ -237,6 +236,5 @@
             <Run x:Name="Label3" Text="Refresh:" />
             <Run x:Name="Value3" Text="00:00:00" />
         </TextBlock>
-
     </Grid>
 </Window>

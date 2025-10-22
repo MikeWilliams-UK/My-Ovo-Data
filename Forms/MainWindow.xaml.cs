@@ -2,7 +2,6 @@
 using Microsoft.Win32;
 using OvoData.Helpers;
 using OvoData.Models;
-using OvoData.Models.Api.Login;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -24,7 +23,6 @@ namespace OvoData.Forms
     {
         private readonly IConfigurationRoot _configuration;
 
-        private Tokens _tokens;
         private Account _selectedAccount;
 
         private bool _cancelRequested;
@@ -33,7 +31,8 @@ namespace OvoData.Forms
 
         private HttpHelper _httpHelper;
 
-        private Logger _logger;
+        private Logger? _logger;
+        private int logNumber;
 
         private DispatcherTimer _timer;
 
@@ -54,7 +53,6 @@ namespace OvoData.Forms
             _timer.Tick += OnTick_Timer; // Attach the Tick event
             _timer.Start(); // Start the timer
 
-            _tokens = new Tokens();
             _httpHelper = new HttpHelper(_configuration);
             _selectedAccount = new Account();
         }
@@ -64,12 +62,12 @@ namespace OvoData.Forms
             var now = DateTime.Now;
             Value1.Text = $"{now:HH:mm:ss}";
 
-            if (!string.IsNullOrEmpty(_tokens.UserGuid))
+            if (!string.IsNullOrEmpty(_httpHelper.Tokens.UserGuid))
             {
-                Value2.Text = $"{_tokens.AccessTokenExpiryTime:HH:mm:ss}";
-                if (now >= _tokens.AccessTokenExpiryTime)
+                Value2.Text = $"{_httpHelper.Tokens.AccessTokenExpiryTime:HH:mm:ss}";
+                if (now >= _httpHelper.Tokens.AccessTokenExpiryTime)
                 {
-                    _tokens.AccessTokenExpired = true;
+                    _httpHelper.Tokens.AccessTokenExpired = true;
                     Value2.Foreground = Brushes.Red;
                 }
                 else
@@ -77,10 +75,10 @@ namespace OvoData.Forms
                     Value2.Foreground = Brushes.Green;
                 }
 
-                Value3.Text = $"{_tokens.RefreshTokenExpiryTime:HH:mm:ss}";
-                if (now >= _tokens.RefreshTokenExpiryTime)
+                Value3.Text = $"{_httpHelper.Tokens.RefreshTokenExpiryTime:HH:mm:ss}";
+                if (now >= _httpHelper.Tokens.RefreshTokenExpiryTime)
                 {
-                    _tokens.RefreshTokenExpired = true;
+                    _httpHelper.Tokens.RefreshTokenExpired = true;
                     Value3.Foreground = Brushes.Red;
                 }
                 else
@@ -128,7 +126,7 @@ namespace OvoData.Forms
 
         private void OnClick_Login(object sender, RoutedEventArgs e)
         {
-            _logger = new Logger();
+            _logger = new Logger(ref logNumber);
             _httpHelper.SetLogger(_logger);
 
             if (string.IsNullOrEmpty(UserName.Text) && string.IsNullOrEmpty(Password.Password))
@@ -143,14 +141,12 @@ namespace OvoData.Forms
 
                 SetStatusText("Connecting ...");
 
-                if (_httpHelper.Login(UserName.Text, Password.Password, out var tokens, out var ovoAccounts))
+                if (_httpHelper.Login(UserName.Text, Password.Password, out var ovoAccounts))
                 {
                     Login.IsEnabled = false;
 
                     if (ovoAccounts.Any())
                     {
-                        _tokens = tokens;
-
                         foreach (var ovoAccount in ovoAccounts)
                         {
                             Accounts.Items.Add(ovoAccount);
@@ -179,7 +175,7 @@ namespace OvoData.Forms
                 _selectedAccount = account;
                 SetStateOfControls(true);
 
-                var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
+                var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger!);
                 AccountStatistics.ItemsSource = sqlite.GetUsageInformation();
 
                 SetStatusText($"Account Id: {_selectedAccount.Id} selected");
@@ -211,7 +207,7 @@ namespace OvoData.Forms
 
         private void OnClick_ReadUsage(object sender, RoutedEventArgs e)
         {
-            _logger = new Logger();
+            _logger = new Logger(ref logNumber);
             _httpHelper.SetLogger(_logger);
 
             SetMouseCursor();
@@ -240,7 +236,7 @@ namespace OvoData.Forms
 
                     SetStatusText($"Checking Year {year}");
 
-                    var monthly = _httpHelper.ObtainMonthlyUsage(_tokens, _selectedAccount.Id, year);
+                    var monthly = _httpHelper.ObtainMonthlyUsage(_selectedAccount.Id, year);
 
                     int monthlyReadings = 0;
 
@@ -281,7 +277,7 @@ namespace OvoData.Forms
                                 || sqlite.CountDaily("Gas", year, month) < lastDay)
                             {
                                 SetStatusText($"Fetching Daily Usage for account {_selectedAccount.Id} - Month {year}-{month:D2}", true);
-                                var daily = _httpHelper.ObtainDailyUsage(_tokens, _selectedAccount.Id, year, month);
+                                var daily = _httpHelper.ObtainDailyUsage(_selectedAccount.Id, year, month);
 
                                 if (daily.Electricity != null && daily.Electricity.Data != null)
                                 {
@@ -310,7 +306,7 @@ namespace OvoData.Forms
                                         && sqlite.CountHalfHourly("Gas", year, month, day) < 48))
                                 {
                                     SetStatusText($"Fetching Half Hourly Usage for account {_selectedAccount.Id} - Day {year}-{month:D2}-{day:D2}", true);
-                                    var halfHourly = _httpHelper.ObtainHalfHourlyUsage(_tokens, _selectedAccount.Id, year, month, day);
+                                    var halfHourly = _httpHelper.ObtainHalfHourlyUsage(_selectedAccount.Id, year, month, day);
 
                                     if (halfHourly.Electricity != null && halfHourly.Electricity.Data != null)
                                     {
@@ -366,7 +362,7 @@ namespace OvoData.Forms
 
         private void ClearDown()
         {
-            var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
+            var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger!);
             AccountStatistics.ItemsSource = sqlite.GetUsageInformation();
 
             CursorManager.ClearWaitCursor(CancelOperations);
@@ -386,9 +382,11 @@ namespace OvoData.Forms
 
         private void OnClick_ExportUsage(object sender, RoutedEventArgs e)
         {
+            _logger = new Logger(ref logNumber);
+
             SetStateOfControls(false);
 
-            var window = new Export(this, _logger)
+            var window = new Export(this, _logger!)
             {
                 Owner = this,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
@@ -407,7 +405,7 @@ namespace OvoData.Forms
         {
             if (log)
             {
-                _logger.WriteLine(message);
+                _logger?.WriteLine(message);
             }
             Status.Text = message;
             DoWpfEvents();
@@ -427,7 +425,7 @@ namespace OvoData.Forms
 
         private void OnClick_ReadMeterReadings(object sender, RoutedEventArgs e)
         {
-            _logger = new Logger();
+            _logger = new Logger(ref logNumber);
             _httpHelper.SetLogger(_logger);
 
             try
@@ -435,7 +433,7 @@ namespace OvoData.Forms
                 SetMouseCursor();
                 SetStateOfControls(false);
 
-                var supplyPoints = _httpHelper.ObtainMeterReadings(_tokens, _selectedAccount.Id);
+                var supplyPoints = _httpHelper.ObtainMeterReadings(_selectedAccount.Id);
 
                 SetStatusText("Updating meter readings ...", true);
 
@@ -461,9 +459,9 @@ namespace OvoData.Forms
 
                             sqlite.UpsertMeterRegisters(register, supplyPoint.FuelType);
                         }
-                        _logger.WriteLine($"Saved {meter.Registers.Count} {fuelType} Meter Registers");
+                        _logger?.WriteLine($"Saved {meter.Registers.Count} {fuelType} Meter Registers");
                     }
-                    _logger.WriteLine($"Saved {supplyPoint.Meters.Count} {fuelType} Meters");
+                    _logger?.WriteLine($"Saved {supplyPoint.Meters.Count} {fuelType} Meters");
 
                     var idx = 0;
                     var records = 0;
@@ -487,14 +485,14 @@ namespace OvoData.Forms
                         }
                     }
 
-                    _logger.WriteLine($"Saved {records} {fuelType} readings");
+                    _logger?.WriteLine($"Saved {records} {fuelType} readings");
                 }
 
-                _logger.WriteLine($"Saved {supplyPoints.Count} Supply Points");
+                _logger?.WriteLine($"Saved {supplyPoints.Count} Supply Points");
             }
             catch (Exception exception)
             {
-                _logger.WriteLine(exception.ToString());
+                _logger?.WriteLine(exception.ToString());
                 MessageBox.Show(exception.ToString(), "Exception");
             }
             finally

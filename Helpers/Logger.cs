@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 
@@ -7,15 +6,13 @@ namespace OvoData.Helpers;
 
 public class Logger
 {
-    private string _suffix;
+    private readonly string _suffix;
 
-    private static int _logNumber;
-
-    public Logger()
+    public Logger(ref int logNumber)
     {
-        _logNumber++;
+        logNumber++;
 
-        _suffix = $"{Environment.ProcessId:x8}-{_logNumber:000}";
+        _suffix = $"{Environment.ProcessId:X6}-{logNumber:000}";
     }
 
     public void WriteLine(string message)

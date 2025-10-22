@@ -39,7 +39,7 @@ namespace OvoData.Forms
         {
             try
             {
-                _logger = new Logger();
+                CursorManager.SetWaitCursorExcept();
 
                 if (sender is Button button)
                 {
@@ -66,7 +66,12 @@ namespace OvoData.Forms
             catch (Exception exception)
             {
                 _logger.WriteLine(exception.ToString());
+
                 MessageBox.Show(exception.ToString(), "Exception");
+            }
+            finally
+            {
+                CursorManager.ClearWaitCursor();
             }
         }
 
