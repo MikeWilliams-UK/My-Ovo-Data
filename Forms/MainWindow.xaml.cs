@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Win32;
 using OvoData.Helpers;
+using OvoData.Models;
 using OvoData.Models.Api.Login;
-using OvoData.Models.Database;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -31,7 +31,7 @@ namespace OvoData.Forms
 
         private string _stopWhen = string.Empty;
 
-        private HttpHelper? _httpHelper;
+        private HttpHelper _httpHelper;
 
         private Logger _logger;
 
@@ -54,8 +54,8 @@ namespace OvoData.Forms
             _timer.Tick += OnTick_Timer; // Attach the Tick event
             _timer.Start(); // Start the timer
 
-            _logger = new Logger();
             _tokens = new Tokens();
+            _httpHelper = new HttpHelper(_configuration);
             _selectedAccount = new Account();
         }
 
@@ -129,7 +129,7 @@ namespace OvoData.Forms
         private void OnClick_Login(object sender, RoutedEventArgs e)
         {
             _logger = new Logger();
-            _httpHelper = new HttpHelper(_configuration, _logger);
+            _httpHelper.SetLogger(_logger);
 
             if (string.IsNullOrEmpty(UserName.Text) && string.IsNullOrEmpty(Password.Password))
             {
@@ -212,7 +212,7 @@ namespace OvoData.Forms
         private void OnClick_ReadUsage(object sender, RoutedEventArgs e)
         {
             _logger = new Logger();
-            _httpHelper = new HttpHelper(_configuration, _logger);
+            _httpHelper.SetLogger(_logger);
 
             SetMouseCursor();
             SetStateOfControls(false);
@@ -428,7 +428,7 @@ namespace OvoData.Forms
         private void OnClick_ReadMeterReadings(object sender, RoutedEventArgs e)
         {
             _logger = new Logger();
-            _httpHelper = new HttpHelper(_configuration, _logger);
+            _httpHelper.SetLogger(_logger);
 
             try
             {

@@ -9,14 +9,13 @@ public class Logger
 {
     private string _suffix;
 
+    private static int _logNumber;
+
     public Logger()
     {
-        var startOfYear = new DateTime(DateTime.Today.Year, 1, 1, 0,0,0, DateTimeKind.Utc);
+        _logNumber++;
 
-        var deltaDays = DateTime.UtcNow - startOfYear;
-        var deltaSeconds = DateTime.Now - DateTime.Now.Date;
-
-        _suffix = $"{Math.Floor(deltaDays.TotalDays)}.{Math.Floor(deltaSeconds.TotalSeconds)}";
+        _suffix = $"{Environment.ProcessId:x8}-{_logNumber:000}";
     }
 
     public void WriteLine(string message)

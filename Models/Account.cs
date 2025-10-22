@@ -1,4 +1,4 @@
-﻿namespace OvoData.Models.Database;
+﻿namespace OvoData.Models;
 
 public class Account
 {

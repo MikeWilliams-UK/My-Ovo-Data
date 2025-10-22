@@ -1,7 +1,7 @@
 ﻿using OvoData.Models.Database.Readings;
 using System.Collections.Generic;
 
-namespace OvoData.Models.Database;
+namespace OvoData.Models;
 
 public class SupplyPoint
 {

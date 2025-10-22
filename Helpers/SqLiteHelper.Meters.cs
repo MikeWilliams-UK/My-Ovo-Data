@@ -1,4 +1,4 @@
-﻿using OvoData.Models.Database;
+﻿using OvoData.Models;
 using OvoData.Models.Database.Readings;
 using System.Data.SQLite;
 using System.Text;
