@@ -131,7 +131,8 @@ public class HttpHelper
                     if (cookie != null)
                     {
                         tokens.RefreshToken = cookie.Value;
-                        tokens.RefreshTokenExpiryTime = cookie.Expires;
+                        //tokens.RefreshTokenExpiryTime = cookie.Expires;
+                        tokens.RefreshTokenExpiryTime = DateTime.Now.AddSeconds(120);
                         tokens.RefreshTokenExpired = false;
 
                         _logger?.DumpJson("Refresh-Token", JwtHelper.DumpJwt(tokens.RefreshToken));
@@ -178,20 +179,23 @@ public class HttpHelper
             _logger?.WriteLine($"Refresh token expired at {tokens.RefreshTokenExpiryTime:HH:mm:ss}");
         }
 
-        // If Access token has expired and Refresh Token has NOT expired
-        if (tokens.AccessTokenExpired
-            && !tokens.RefreshTokenExpired)
+        if (tokens.RefreshTokenExpired)
         {
-            return DoGetAccessToken(tokens);
+            if (_loginRequest != null
+                && DoLogin(_loginRequest, out tokens))
+            {
+                tokens = DoGetAccessToken(tokens);
+            }
+        }
+        else
+        {
+            if (tokens.AccessTokenExpired)
+            {
+                tokens = DoGetAccessToken(tokens);
+            }
         }
 
-        if (tokens.RefreshTokenExpired
-            && _loginRequest != null)
-        {
-            // If we get here then we need to obtain both tokens
-            DoLogin(_loginRequest, out tokens);
-        }
-
+        // Tokens are both valid
         return tokens;
     }
 
@@ -201,7 +205,7 @@ public class HttpHelper
         {
             var uri = new Uri(_configuration["TokenUri"]!);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Remove("restricted_refresh_token");
+            //request.Headers.Remove("restricted_refresh_token");
             request.Headers.Add("restricted_refresh_token", tokens.RefreshToken);
 
             var response = _httpClient1.SendAsync(request).Result;
