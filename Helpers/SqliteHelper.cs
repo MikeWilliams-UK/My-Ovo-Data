@@ -155,7 +155,14 @@ public partial class SqLiteHelper
             var to = FieldAsString(reader["Max"]);
             var count = FieldAsInt(reader["count"]);
 
-            Debug.WriteLine($"Record Count for {tableName} ({fuelType}) is {count}");
+            if (metric == "Usage")
+            {
+                Debug.WriteLine($"Record Count for {tableName} is {count}");
+            }
+            else
+            {
+                Debug.WriteLine($"Record Count for {tableName} ({StringHelper.ProperCase(fuelType)}) is {count}");
+            }
 
             if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
             {

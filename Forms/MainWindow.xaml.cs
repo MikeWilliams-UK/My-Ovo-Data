@@ -159,7 +159,6 @@ namespace OvoData.Forms
                 }
 
                 ClearDown();
-                ShowAccountInfo();
             }
         }
 
@@ -171,10 +170,7 @@ namespace OvoData.Forms
                 _selectedAccount = account;
                 SetStateOfControls(true);
 
-                var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger!);
-                AccountStatistics.ItemsSource = sqlite.GetUsageInformation();
-
-                SetStatusText($"Account Id: {_selectedAccount.Id} selected");
+                ShowAccountInfo();
             }
         }
 
@@ -203,6 +199,7 @@ namespace OvoData.Forms
         {
             _logger = new Logger(ref logNumber);
             _httpHelper.SetLogger(_logger);
+            var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
 
             SetMouseCursor();
             SetStateOfControls(false);
@@ -216,8 +213,6 @@ namespace OvoData.Forms
                 var year = thisYear;
 
                 var monthsFetched = 0;
-
-                var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
 
                 while (!_cancelRequested)
                 {
@@ -351,15 +346,16 @@ namespace OvoData.Forms
             finally
             {
                 ClearDown();
+                ShowAccountInfo();
             }
         }
 
         private void ShowAccountInfo()
         {
+            SetStatusText($"Account Id: {_selectedAccount.Id} selected");
+
             var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger!);
             AccountStatistics.ItemsSource = sqlite.GetUsageInformation();
-
-            SetStatusText($"Account Id: {_selectedAccount.Id} selected");
         }
 
         private void ClearDown()
@@ -392,7 +388,9 @@ namespace OvoData.Forms
                 Account = _selectedAccount.Id
             };
             window.ShowDialog();
+
             ClearDown();
+            ShowAccountInfo();
         }
 
         private static int LastDayInMonth(int year, int month)
@@ -427,6 +425,7 @@ namespace OvoData.Forms
         {
             _logger = new Logger(ref logNumber);
             _httpHelper.SetLogger(_logger);
+            var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
 
             try
             {
@@ -436,8 +435,6 @@ namespace OvoData.Forms
                 var supplyPoints = _httpHelper.ObtainMeterReadings(_selectedAccount.Id);
 
                 SetStatusText("Updating meter readings ...", true);
-
-                var sqlite = new SqLiteHelper(_selectedAccount.Id, _logger);
 
                 foreach (var supplyPoint in supplyPoints)
                 {
@@ -498,6 +495,7 @@ namespace OvoData.Forms
             finally
             {
                 ClearDown();
+                ShowAccountInfo();
             }
         }
 
