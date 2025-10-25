@@ -131,8 +131,7 @@ public class HttpHelper
                     if (cookie != null)
                     {
                         Tokens.RefreshToken = cookie.Value;
-                        Tokens.RefreshTokenExpiryTime = cookie.Expires;
-                        Tokens.RefreshTokenExpired = false;
+                        Tokens.RefreshTokenExpiryTime = DateTime.Now.AddMinutes(29);
 
                         _logger?.DumpJson("Refresh-Token", JwtHelper.DumpJwt(Tokens.RefreshToken));
 
@@ -212,7 +211,7 @@ public class HttpHelper
                     }
 
                     Tokens.AccessToken = tokenResponse.AccessToken.Value;
-                    Tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn);
+                    Tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn - 5);
                     Tokens.AccessTokenExpired = false;
 
                     _logger?.DumpJson("Access-Token", JwtHelper.DumpJwt(Tokens.AccessToken));

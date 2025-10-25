@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -110,7 +109,7 @@ public partial class SqLiteHelper
             {
                 while (reader.Read())
                 {
-                    ExtractMetric(reader, "Usage", $"Monthly{fuelType}", fuelType);
+                    ExtractMetric(reader, "Monthly", fuelType);
                 }
             }
         }
@@ -128,7 +127,7 @@ public partial class SqLiteHelper
             {
                 while (reader.Read())
                 {
-                    ExtractMetric(reader, "Usage", $"Daily{fuelType}", fuelType);
+                    ExtractMetric(reader, "Daily", fuelType);
                 }
             }
         }
@@ -146,7 +145,7 @@ public partial class SqLiteHelper
             {
                 while (reader.Read())
                 {
-                    ExtractMetric(reader, "Usage", $"HalfHourly{fuelType}", fuelType);
+                    ExtractMetric(reader, "Half Hourly", fuelType);
                 }
             }
         }
@@ -164,7 +163,7 @@ public partial class SqLiteHelper
             {
                 while (reader.Read())
                 {
-                    ExtractMetric(reader, "Readings", "MeterReadings", Constants.FuelTypeElectric);
+                    ExtractMetric(reader, "Meter Readings", Constants.FuelTypeElectric);
                 }
             }
         }
@@ -183,25 +182,16 @@ public partial class SqLiteHelper
             {
                 while (reader.Read())
                 {
-                    ExtractMetric(reader, "Readings", "MeterReadings", Constants.FuelTypeGas);
+                    ExtractMetric(reader, "Meter Readings", Constants.FuelTypeGas);
                 }
             }
         }
 
-        void ExtractMetric(SQLiteDataReader reader, string metric, string tableName, string fuelType)
+        void ExtractMetric(SQLiteDataReader reader, string metric, string fuelType)
         {
             var from = FieldAsString(reader["Min"]);
             var to = FieldAsString(reader["Max"]);
             var count = FieldAsInt(reader["count"]);
-
-            if (metric == "Usage")
-            {
-                Debug.WriteLine($"Record Count for {tableName} is {count}");
-            }
-            else
-            {
-                Debug.WriteLine($"Record Count for {tableName} ({StringHelper.ProperCase(fuelType)}) is {count}");
-            }
 
             if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
             {
