@@ -69,13 +69,11 @@ namespace OvoData.Forms
                 var now = DateTime.Now;
                 Value1.Text = $"{now:HH:mm:ss}";
 
-                _httpHelper.Tokens.AccessTokenExpired = now >= _httpHelper.Tokens.AccessTokenExpiryTime;
-                Value2.Text = $"{_httpHelper.Tokens.AccessTokenExpiryTime:HH:mm:ss}";
-                Value2.Foreground = _httpHelper.Tokens.AccessTokenExpired ? Brushes.Red : Brushes.Green;
+                Value2.Foreground = _httpHelper.Tokens.AccessToken.HasExpired ? Brushes.Red : Brushes.Green;
+                Value2.Text = $"{_httpHelper.Tokens.AccessToken.ExpiresAtTime:HH:mm:ss}";
 
-                _httpHelper.Tokens.RefreshTokenExpired = now >= _httpHelper.Tokens.RefreshTokenExpiryTime;
-                Value3.Text = $"{_httpHelper.Tokens.RefreshTokenExpiryTime:HH:mm:ss}";
-                Value3.Foreground = _httpHelper.Tokens.RefreshTokenExpired ? Brushes.Red : Brushes.Green;
+                Value3.Foreground = _httpHelper.Tokens.RefreshToken.HasExpired ? Brushes.Red : Brushes.Green;
+                Value3.Text = $"{_httpHelper.Tokens.RefreshToken.ExpiresAtTime:HH:mm:ss}";
 
                 TokensVisualiser.InvalidateVisual();
                 TokensVisualiser.InvalidateArrange();

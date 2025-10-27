@@ -130,10 +130,8 @@ public class HttpHelper
                     var cookie = cookies.FirstOrDefault(c => c.Name == "restricted_refresh_token");
                     if (cookie != null)
                     {
-                        Tokens.RefreshToken = cookie.Value;
-                        Tokens.RefreshTokenExpiryTime = DateTime.Now.AddMinutes(29);
-
-                        _logger?.DumpJson("Refresh-Token", JwtHelper.DumpJwt(Tokens.RefreshToken));
+                        Tokens.RefreshToken.Jwt = cookie.Value;
+                        _logger?.DumpJson("Refresh-Token", Tokens.RefreshToken.ToString());
 
                         result = true;
                     }
@@ -158,19 +156,16 @@ public class HttpHelper
     {
         var now = DateTime.Now;
 
-        Tokens.AccessTokenExpired = now >= Tokens.AccessTokenExpiryTime;
-        Tokens.RefreshTokenExpired = now >= Tokens.RefreshTokenExpiryTime;
-
-        if (Tokens.AccessTokenExpired)
+        if (Tokens.AccessToken.HasExpired)
         {
-            Debug.WriteLine($"Access token expired at {Tokens.AccessTokenExpiryTime:HH:mm:ss}");
+            Debug.WriteLine($"Access token expired at {Tokens.AccessToken.ExpiresAtTime:HH:mm:ss}");
         }
-        if (Tokens.RefreshTokenExpired)
+        if (Tokens.RefreshToken.HasExpired)
         {
-            _logger?.WriteLine($"Refresh token expired at {Tokens.RefreshTokenExpiryTime:HH:mm:ss}");
+            _logger?.WriteLine($"Refresh token expired at {Tokens.RefreshToken.ExpiresAtTime:HH:mm:ss}");
         }
 
-        if (Tokens.RefreshTokenExpired)
+        if (Tokens.RefreshToken.HasExpired)
         {
             if (_loginRequest != null
                 && DoLogin(_loginRequest))
@@ -180,7 +175,7 @@ public class HttpHelper
         }
         else
         {
-            if (Tokens.AccessTokenExpired)
+            if (Tokens.AccessToken.HasExpired)
             {
                 DoGetAccessToken();
             }
@@ -195,7 +190,7 @@ public class HttpHelper
         {
             var uri = new Uri(_configuration["TokenUri"]!);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("restricted_refresh_token", Tokens.RefreshToken);
+            request.Headers.Add("restricted_refresh_token", Tokens.RefreshToken.Jwt);
 
             var response = _httpClient1.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -210,15 +205,13 @@ public class HttpHelper
                         _logger?.DumpJson("DoGetAccessToken-Response", responseContent);
                     }
 
-                    Tokens.AccessToken = tokenResponse.AccessToken.Value;
-                    Tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn - 5);
-                    Tokens.AccessTokenExpired = false;
+                    Tokens.AccessToken.Jwt = tokenResponse.AccessToken.Value;
 
-                    _logger?.DumpJson("Access-Token", JwtHelper.DumpJwt(Tokens.AccessToken));
+                    _logger?.DumpJson("Access-Token", Tokens.AccessToken.ToString());
 
                     Debug.WriteLine($"Current Time             {DateTime.Now:dd-MMM-yyyy HH:mm:ss}");
-                    Debug.WriteLine($"Access  Token Expires at {Tokens.AccessTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
-                    Debug.WriteLine($"Refresh Token Expires at {Tokens.RefreshTokenExpiryTime:dd-MMM-yyyy HH:mm:ss}");
+                    Debug.WriteLine($"Access  Token Expires at {Tokens.AccessToken.ExpiresAtTime:dd-MMM-yyyy HH:mm:ss}");
+                    Debug.WriteLine($"Refresh Token Expires at {Tokens.RefreshToken.ExpiresAtTime:dd-MMM-yyyy HH:mm:ss}");
                 }
             }
             else
@@ -242,7 +235,7 @@ public class HttpHelper
         {
             var uri = new Uri(_configuration["AccountsUri"]!);
             var request = new HttpRequestMessage(HttpMethod.Post, uri);
-            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
 
             var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Accounts.query").Split(Environment.NewLine));
             var graphQl = ResourceHelper.GetStringResource("GraphQL.Accounts.json");
@@ -319,7 +312,7 @@ public class HttpHelper
 
             var uri = string.Format(_configuration["MonthlyUri"]!, accountId, year);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
 
             _logger?.WriteLine($"Calling API endpoint at Uri: {uri}");
 
@@ -360,7 +353,7 @@ public class HttpHelper
             _logger?.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
 
             var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -399,7 +392,7 @@ public class HttpHelper
             _logger?.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
 
             var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -440,7 +433,7 @@ public class HttpHelper
 
             var uri = new Uri(_configuration["ReadingsUri"]!);
             var request = new HttpRequestMessage(HttpMethod.Post, uri);
-            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
 
             var content = new StringContent(graphQl, null, "application/json");
             request.Content = content;

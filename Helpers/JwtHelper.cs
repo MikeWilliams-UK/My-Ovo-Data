@@ -7,8 +7,9 @@ using System.Text.Json;
 
 public static class JwtHelper
 {
-    public static string DumpJwt(string jwtToken)
+    public static string Decode(string jwtToken, out Dictionary<string, DateTime> lifeTimes)
     {
+        lifeTimes = new Dictionary<string, DateTime>();
         try
         {
             var handler = new JwtSecurityTokenHandler();
@@ -21,8 +22,12 @@ public static class JwtHelper
             {
                 if (kvp.Key == "exp" || kvp.Key == "iat")
                 {
-                    var dateTime = DateTimeOffset.FromUnixTimeSeconds((long)kvp.Value).ToLocalTime();
-                    convertedPayload[kvp.Key] = $"{dateTime:yyyy-MM-dd HH:mm:ss}";
+                    var offset = DateTimeOffset.FromUnixTimeSeconds((long)kvp.Value);
+                    var utc = offset.UtcDateTime;
+
+                    lifeTimes.Add(kvp.Key, utc);
+                    convertedPayload[kvp.Key] = $"{utc:yyyy-MM-dd HH:mm:ss}";
+
                     continue;
                 }
 
