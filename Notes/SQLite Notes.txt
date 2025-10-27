@@ -1,4 +1,10 @@
-﻿-- All Tables in creation order
+﻿-- Look for missing HH consumption values
+SELECT  SUBSTR(StartTime, 0, 11) AS Date, COUNT(1) AS Count
+FROM HalfHourlyElectric
+GROUP BY SUBSTR(StartTime, 0, 11)
+HAVING COUNT(1) < 48
+
+-- All Tables in creation order
 SELECT name FROM sqlite_master WHERE type='table' and name = 'fred';
 
 6 Tables

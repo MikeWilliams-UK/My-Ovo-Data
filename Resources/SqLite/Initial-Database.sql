@@ -1,4 +1,4 @@
-﻿-- CREATE TABLE Information (AccountId STRING PRIMARY KEY NOT NULL UNIQUE, FirstMonth STRING, LastMonth STRING, FirstDay STRING, LastDay STRING);
+﻿CREATE TABLE Information (AccountId STRING PRIMARY KEY NOT NULL UNIQUE, FirstMonth STRING, LastMonth STRING, FirstDay STRING, LastDay STRING);
 
 CREATE TABLE MonthlyElectric (Month STRING PRIMARY KEY NOT NULL UNIQUE, Mxpn STRING, Consumption DOUBLE, Cost DOUBLE);
 CREATE INDEX Idx_MonthlyElectric ON MonthlyElectric (Month ASC);
