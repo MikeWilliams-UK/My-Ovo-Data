@@ -72,12 +72,12 @@ public partial class SqLiteHelper
             stringBuilder.AppendLine("VALUES");
             stringBuilder.AppendLine($"('{reading.Date}', '{reading.MeterSerialNumber}', '{fuelType}',");
             stringBuilder.AppendLine($" '{reading.LifeCycle}','{reading.RegisterId}', '{reading.Source}',");
-            stringBuilder.AppendLine($" '{reading.TimingCategory}','{reading.Type}', '{reading.Value}')");
+            stringBuilder.AppendLine($" '{reading.TimingCategory}','{reading.FuelType}', '{reading.Value}')");
             stringBuilder.AppendLine("ON CONFLICT (Date, FuelType)");
             stringBuilder.AppendLine("DO UPDATE SET");
             stringBuilder.AppendLine("  Date = excluded.Date, FuelType = excluded.FuelType, MeterSerialNumber = excluded.MeterSerialNumber,");
             stringBuilder.AppendLine("  LifeCycle = excluded.LifeCycle, RegisterId = excluded.RegisterId, Source = excluded.Source,");
-            stringBuilder.AppendLine("  TimingCategory = excluded.TimingCategory, Type = excluded.Type, Value = excluded.Value");
+            stringBuilder.AppendLine("  TimingCategory = excluded.TimingCategory, FuelType = excluded.FuelType, Value = excluded.Value");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             command.ExecuteNonQuery();

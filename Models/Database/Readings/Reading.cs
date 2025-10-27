@@ -3,7 +3,7 @@
 public class Reading
 {
     public string Date { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;
+    public string FuelType { get; set; } = string.Empty;
     public string LifeCycle { get; set; } = string.Empty;
     public string Source { get; set; } = string.Empty;
     public string MeterSerialNumber { get; set; } = string.Empty;

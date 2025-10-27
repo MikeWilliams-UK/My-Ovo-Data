@@ -65,7 +65,7 @@ public partial class SqLiteHelper
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendLine("SELECT Date, FuelType, Value");
+            stringBuilder.AppendLine("SELECT Date, FuelType, TimingCategory, Value");
             stringBuilder.AppendLine("FROM MeterReadings");
             stringBuilder.AppendLine("ORDER BY Date DESC, FuelType ASC");
 
@@ -80,7 +80,8 @@ public partial class SqLiteHelper
                         var dto = new Reading()
                         {
                             Date = FieldAsString(reader["Date"]),
-                            Type = StringHelper.ProperCase(FieldAsString(reader["FuelType"])),
+                            FuelType = StringHelper.ProperCase(FieldAsString(reader["FuelType"])),
+                            TimingCategory = FieldAsString(reader["TimingCategory"]),
                             Value = FieldAsString(reader["Value"])
                         };
                         result.Add(dto);

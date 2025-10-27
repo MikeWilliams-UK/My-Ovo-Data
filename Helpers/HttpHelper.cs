@@ -512,7 +512,7 @@ public class HttpHelper
                                 var node = edge.MeterNode.MeterReadingData;
                                 var ovoMeterReading = new Reading
                                 {
-                                    Type = node.Type,
+                                    FuelType = node.Type,
                                     Date = node.Date,
                                     LifeCycle = node.Lifecycle,
                                     Source = node.Source,
@@ -590,7 +590,7 @@ public class HttpHelper
                                 var node = edge.MeterNode.MeterReadingData;
                                 var ovoMeterReading = new Reading
                                 {
-                                    Type = node.Type,
+                                    FuelType = node.Type,
                                     Date = node.Date,
                                     LifeCycle = node.Lifecycle,
                                     Source = node.Source,

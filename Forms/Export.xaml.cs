@@ -20,6 +20,7 @@ namespace OvoData.Forms
     public partial class Export : Window
     {
         public MainWindow ParentWindow { get; set; }
+
         public string Account { get; set; } = string.Empty;
 
         private SortedDictionary<string, MonthlyData> _monthlyData = new();
@@ -133,6 +134,22 @@ namespace OvoData.Forms
                     csv.WriteRecords(_halfHourlyData.Values.ToList());
                 }
             }
+
+            ParentWindow.SetStatusText("Exporting Meter Readings data");
+            var meterReadingsFile = Path.Combine(folder, $"{Account} Meter Readings.csv");
+            if (File.Exists(meterReadingsFile))
+            {
+                File.Delete(meterReadingsFile);
+            }
+
+            using (var writer = new StreamWriter(meterReadingsFile))
+            {
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                {
+                    csv.WriteRecords(_readingsData.Values.ToList());
+                }
+            }
+
         }
 
         private void ExportAsExcel()
@@ -302,10 +319,11 @@ namespace OvoData.Forms
                 var readingsData = new ReadingsData
                 {
                     Date = reading.Date,
-                    Type = reading.Type,
+                    FuelType = reading.FuelType,
+                    Category = reading.TimingCategory,
                     Value = reading.Value
                 };
-                result.Add($"{reading.Date}-{reading.Type}", readingsData);
+                result.Add($"{reading.Date}-{reading.FuelType}", readingsData);
             }
 
             return result;
