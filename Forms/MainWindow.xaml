@@ -140,14 +140,13 @@
                 <ColumnDefinition Width="1*" />
                 <ColumnDefinition Width="1*" />
                 <ColumnDefinition Width="1*" />
-                <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
 
             <ComboBox
                 x:Name="StopWhen"
                 Grid.Row="0"
                 Grid.Column="0"
-                Grid.ColumnSpan="5"
+                Grid.ColumnSpan="4"
                 Margin="0,0,0,1"
                 IsEnabled="False"
                 SelectionChanged="OnSelectionChanged_StopWhen"
@@ -165,20 +164,9 @@
                 Get Usage
             </Button>
             <Button
-                x:Name="ExportUsage"
-                Grid.Row="1"
-                Grid.Column="1"
-                Margin="1"
-                VerticalAlignment="Center"
-                Click="OnClick_ExportUsage"
-                IsEnabled="False"
-                ToolTip="Export Usage data for selected account">
-                Export Usage
-            </Button>
-            <Button
                 x:Name="ReadMeterReadings"
                 Grid.Row="1"
-                Grid.Column="2"
+                Grid.Column="1"
                 Margin="1"
                 VerticalAlignment="Center"
                 Click="OnClick_ReadMeterReadings"
@@ -187,20 +175,20 @@
                 Get Readings
             </Button>
             <Button
-                x:Name="ExportReadings"
+                x:Name="ExportUsage"
                 Grid.Row="1"
-                Grid.Column="3"
+                Grid.Column="2"
                 Margin="1"
                 VerticalAlignment="Center"
-                Click="OnClick_ExportReadings"
+                Click="OnClick_ExportUsage"
                 IsEnabled="False"
-                ToolTip="Export Meter Readings for selected account">
-                Export Readings
+                ToolTip="Export data for selected account">
+                Export Data
             </Button>
             <Button
                 x:Name="CancelOperations"
                 Grid.Row="1"
-                Grid.Column="4"
+                Grid.Column="3"
                 Margin="1,1,0,1"
                 VerticalContentAlignment="Center"
                 Click="OnClick_CancelOperations"

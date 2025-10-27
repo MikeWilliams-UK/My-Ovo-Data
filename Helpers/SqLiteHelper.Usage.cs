@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Text;
+using OvoData.Models.Database.Readings;
 
 namespace OvoData.Helpers;
 
@@ -54,6 +55,41 @@ public partial class SqLiteHelper
 
             transaction.Commit();
         }
+    }
+
+    public List<Reading> FetchMeterReadings()
+    {
+        var result = new List<Reading>();
+
+        using (var connection = GetConnection())
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("SELECT Date, FuelType, Value");
+            stringBuilder.AppendLine("FROM MeterReadings");
+            stringBuilder.AppendLine("ORDER BY Date DESC, FuelType ASC");
+
+            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
+
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader != null)
+                {
+                    while (reader.Read())
+                    {
+                        var dto = new Reading()
+                        {
+                            Date = FieldAsString(reader["Date"]),
+                            Type = StringHelper.ProperCase(FieldAsString(reader["FuelType"])),
+                            Value = FieldAsString(reader["Value"])
+                        };
+                        result.Add(dto);
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     public List<Monthly> FetchMonthly(string fuelType)

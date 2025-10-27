@@ -183,13 +183,9 @@ namespace OvoData.Forms
         private void SetStateOfControls(bool state)
         {
             StopWhen.IsEnabled = state;
-
             ReadUsage.IsEnabled = state;
-            ExportUsage.IsEnabled = state;
-
             ReadMeterReadings.IsEnabled = state;
-            ExportReadings.IsEnabled = state;
-
+            ExportUsage.IsEnabled = state;
             CancelOperations.IsEnabled = !state;
         }
 
@@ -500,11 +496,6 @@ namespace OvoData.Forms
         private void SetMouseCursor()
         {
             CursorManager.SetWaitCursorExcept(CancelOperations);
-        }
-
-        private void OnClick_ExportReadings(object sender, RoutedEventArgs e)
-        {
-            //ToDo: Export the data from SQLite
         }
     }
 }

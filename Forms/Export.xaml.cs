@@ -25,6 +25,7 @@ namespace OvoData.Forms
         private SortedDictionary<string, MonthlyData> _monthlyData = new();
         private SortedDictionary<string, DailyData> _dailyData = new();
         private SortedDictionary<string, HalfHourlyData> _halfHourlyData = new();
+        private SortedDictionary<string, ReadingsData> _readingsData = new();
 
         private Logger _logger;
 
@@ -265,6 +266,12 @@ namespace OvoData.Forms
                 {
                     writer.WriteRecords(_halfHourlyData.Values.ToList());
                 }
+
+                ParentWindow.SetStatusText("Exporting Meter Readings data");
+                using (var writer = spreadsheet.CreateWorksheetWriter<ReadingsData, ReadingsDataMap>("Meter Readings", worksheetStyle))
+                {
+                    writer.WriteRecords(_readingsData.Values.ToList());
+                }
             }
         }
 
@@ -280,25 +287,47 @@ namespace OvoData.Forms
 
             ParentWindow.SetStatusText("Fetching Half Hourly data");
             _halfHourlyData = GetHalfHourlyData(helper);
+
+            ParentWindow.SetStatusText("Fetching Meter Readings Data");
+            _readingsData = GetReadingsData(helper);
+        }
+
+        private SortedDictionary<string, ReadingsData> GetReadingsData(SqLiteHelper helper)
+        {
+            var result = new SortedDictionary<string, ReadingsData>();
+
+            var meterReadings = helper.FetchMeterReadings();
+            foreach (var reading in meterReadings)
+            {
+                var readingsData = new ReadingsData
+                {
+                    Date = reading.Date,
+                    Type = reading.Type,
+                    Value = reading.Value
+                };
+                result.Add($"{reading.Date}-{reading.Type}", readingsData);
+            }
+
+            return result;
         }
 
         private SortedDictionary<string, HalfHourlyData> GetHalfHourlyData(SqLiteHelper helper)
         {
             var result = new SortedDictionary<string, HalfHourlyData>(new DescendingComparer<string>());
 
-            var readings = helper.FetchHalfHourly("Electric");
-            foreach (var reading in readings)
+            var halfHourlies = helper.FetchHalfHourly("Electric");
+            foreach (var halfHourly in halfHourlies)
             {
                 var halfHourlyData = new HalfHourlyData
                 {
-                    StartTime = reading.StartTime,
-                    ElectricKwh = reading.Consumption
+                    StartTime = halfHourly.StartTime,
+                    ElectricKwh = halfHourly.Consumption
                 };
-                result.Add(reading.StartTime, halfHourlyData);
+                result.Add(halfHourly.StartTime, halfHourlyData);
             }
 
-            readings = helper.FetchHalfHourly("Gas");
-            foreach (var reading in readings)
+            halfHourlies = helper.FetchHalfHourly("Gas");
+            foreach (var reading in halfHourlies)
             {
                 if (result.TryGetValue(reading.StartTime, out var halfHourlyData))
                 {
@@ -322,24 +351,24 @@ namespace OvoData.Forms
         {
             var result = new SortedDictionary<string, DailyData>(new DescendingComparer<string>());
 
-            var readings = helper.FetchDaily("Electric");
-            foreach (var reading in readings)
+            var dailies = helper.FetchDaily("Electric");
+            foreach (var daily in dailies)
             {
                 var dailyData = new DailyData
                 {
-                    Day = reading.Day,
-                    ElectricKwh = reading.Consumption,
-                    ElectricCost = reading.Cost,
-                    ElectricStanding = reading.Standing,
-                    ElectricAnyTime = reading.AnyTime,
-                    ElectricPeak = reading.Peak,
-                    ElectricOffPeak = reading.OffPeak
+                    Day = daily.Day,
+                    ElectricKwh = daily.Consumption,
+                    ElectricCost = daily.Cost,
+                    ElectricStanding = daily.Standing,
+                    ElectricAnyTime = daily.AnyTime,
+                    ElectricPeak = daily.Peak,
+                    ElectricOffPeak = daily.OffPeak
                 };
-                result.Add(reading.Day, dailyData);
+                result.Add(daily.Day, dailyData);
             }
 
-            readings = helper.FetchDaily("Gas");
-            foreach (var reading in readings)
+            dailies = helper.FetchDaily("Gas");
+            foreach (var reading in dailies)
             {
                 if (result.TryGetValue(reading.Day, out var dailyData))
                 {
@@ -369,20 +398,20 @@ namespace OvoData.Forms
         {
             var result = new SortedDictionary<string, MonthlyData>(new DescendingComparer<string>());
 
-            var readings = helper.FetchMonthly("Electric");
-            foreach (var reading in readings)
+            var monthlies = helper.FetchMonthly("Electric");
+            foreach (var monthly in monthlies)
             {
                 var monthlyData = new MonthlyData
                 {
-                    Month = reading.Month,
-                    ElectricKwh = reading.Consumption,
-                    ElectricCost = reading.Cost
+                    Month = monthly.Month,
+                    ElectricKwh = monthly.Consumption,
+                    ElectricCost = monthly.Cost
                 };
-                result.Add(reading.Month, monthlyData);
+                result.Add(monthly.Month, monthlyData);
             }
 
-            readings = helper.FetchMonthly("Gas");
-            foreach (var reading in readings)
+            monthlies = helper.FetchMonthly("Gas");
+            foreach (var reading in monthlies)
             {
                 if (result.TryGetValue(reading.Month, out var monthlyData))
                 {
