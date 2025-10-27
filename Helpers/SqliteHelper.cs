@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace OvoData.Helpers;
@@ -84,13 +85,15 @@ public partial class SqLiteHelper
 
         using (var connection = GetConnection())
         {
+            // Electric first
             GetMonthlyUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeElectric));
-            GetMonthlyUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeGas));
             GetDailyUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeElectric));
-            GetDailyUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeGas));
             GetHalfHourlyUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeElectric));
-            GetHalfHourlyUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeGas));
             GetElectricityReadingMetric(connection);
+            // Then Gas
+            GetMonthlyUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeGas));
+            GetDailyUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeGas));
+            GetHalfHourlyUsageMetric(connection, StringHelper.ProperCase(Constants.FuelTypeGas));
             GetGasReadingMetric(connection);
         }
 

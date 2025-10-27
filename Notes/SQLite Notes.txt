@@ -7,9 +7,10 @@ HAVING COUNT(1) < 48
 -- All Tables in creation order
 SELECT name FROM sqlite_master WHERE type='table' and name = 'fred';
 
-6 Tables
+7 Tables
 --------
 -- DROP TABLE Information;
+Information
 MonthlyElectric
 MonthlyGas
 DailyElectric
@@ -19,13 +20,12 @@ HalfHourlyGas
 
 4 Extra Tables
 --------------
-SupplyPoint
-Meter
-MeterRegister
-Reading
+SupplyPoints
+Meters
+MeterRegisters
+Readings
 
 -- Tidy Up (bfore a new run)
---DROP TABLE SupplyPointsInformation;
 DROP TABLE SupplyPoints;
 DROP TABLE Meters;
 DROP TABLE MeterRegisters;
