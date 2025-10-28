@@ -312,6 +312,31 @@ namespace OvoData.Forms
         private SortedDictionary<string, ReadingsData> GetReadingsData(SqLiteHelper helper)
         {
             var result = new SortedDictionary<string, ReadingsData>();
+            var listOfRegisters = new List<RegistersData>();
+
+            var meterRegisters = helper.FetchMeterRegisters();
+            foreach (var register in meterRegisters)
+            {
+                DateTime.TryParseExact(register.RegisterStartDate, Constants.ShortDateFormat,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal,
+                    out var startDate);
+
+                DateTime.TryParseExact(register.RegisterStartDate, Constants.ShortDateFormat,
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeUniversal,
+                        out var endDate);
+
+                var r = new RegistersData
+                {
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    TimingCategory = register.TimingCategory,
+                    UnitOfMeasurement = register.UnitMeasurement
+                };
+
+                listOfRegisters.Add(r);
+            }
 
             var meterReadings = helper.FetchMeterReadings();
             foreach (var reading in meterReadings)

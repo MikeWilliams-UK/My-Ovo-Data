@@ -1,6 +1,6 @@
 ﻿namespace OvoData.Models.Database.Readings;
 
-public class Reading
+public class SqLiteReading
 {
     public string Date { get; set; } = string.Empty;
     public string FuelType { get; set; } = string.Empty;

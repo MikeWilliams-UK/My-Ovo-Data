@@ -1,5 +1,5 @@
 ﻿-- Drop V1.04 and earlier surplus table
-DROP TABLE Information;
+DROP TABLE IF EXISTS Information;
 
 -- Create new tables for V1.0.5
 CREATE TABLE SupplyPoints (Sprn STRING PRIMARY KEY UNIQUE NOT NULL, FuelType STRING NOT NULL);

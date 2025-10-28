@@ -26,7 +26,7 @@ public partial class SqLiteHelper
         }
     }
 
-    public void UpsertMeter(Meter meter, string fuelType)
+    public void UpsertMeter(SqLiteMeter meter, string fuelType)
     {
         using (var connection = GetConnection())
         {
@@ -34,7 +34,7 @@ public partial class SqLiteHelper
 
             stringBuilder.AppendLine("INSERT INTO Meters");
             stringBuilder.AppendLine("VALUES");
-            stringBuilder.AppendLine($"('{meter.SerialNumber}', '{fuelType}', '{meter.Type}', '{meter.Status}')");
+            stringBuilder.AppendLine($"('{meter.SerialNumber}', '{fuelType}', '{meter.FuelType}', '{meter.Status}')");
             stringBuilder.AppendLine("ON CONFLICT (SerialNumber)");
             stringBuilder.AppendLine("DO UPDATE SET SerialNumber = excluded.SerialNumber, FuelType = excluded.FuelType, MeterType = excluded.MeterType, Status = excluded.Status");
 
@@ -43,7 +43,7 @@ public partial class SqLiteHelper
         }
     }
 
-    public void UpsertMeterRegisters(Register register, string fuelType)
+    public void UpsertMeterRegisters(SqLiteRegister register, string fuelType)
     {
         using (var connection = GetConnection())
         {
@@ -63,7 +63,7 @@ public partial class SqLiteHelper
         }
     }
 
-    public void UpsertMeterReading(Reading reading, string fuelType)
+    public void UpsertMeterReading(SqLiteReading reading, string fuelType)
     {
         using (var connection = GetConnection())
         {
@@ -121,9 +121,9 @@ public partial class SqLiteHelper
         return result;
     }
 
-    public List<Reading> FetchMeterReadings()
+    public List<SqLiteReading> FetchMeterReadings()
     {
-        var result = new List<Reading>();
+        var result = new List<SqLiteReading>();
 
         using (var connection = GetConnection())
         {
@@ -141,7 +141,7 @@ public partial class SqLiteHelper
                 {
                     while (reader.Read())
                     {
-                        var dto = new Reading()
+                        var dto = new SqLiteReading()
                         {
                             Date = FieldAsString(reader["Date"]),
                             FuelType = StringHelper.ProperCase(FieldAsString(reader["FuelType"])),

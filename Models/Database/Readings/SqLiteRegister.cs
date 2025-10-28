@@ -1,6 +1,6 @@
 ﻿namespace OvoData.Models.Database.Readings;
 
-public class Register
+public class SqLiteRegister
 {
     public string Id { get; set; } = string.Empty;
 
@@ -8,6 +8,7 @@ public class Register
     public string EndDate { get; set; } = string.Empty;
 
     public string TimingCategory { get; set; } = string.Empty;
+    public string FuelType { get; set; } = string.Empty;
     public string UnitOfMeasurement { get; set; } = string.Empty;
 
     public override string ToString()

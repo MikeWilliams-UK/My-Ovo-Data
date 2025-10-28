@@ -48,28 +48,23 @@ public partial class SqLiteHelper
     {
         var tables = ResourceHelper.GetStringResource("SqLite.Initial-Database.sql").Split(Environment.NewLine);
 
-        using (var connection = GetConnection())
-        {
-            foreach (var table in tables)
-            {
-                if (!string.IsNullOrEmpty(table) && !table.StartsWith("-"))
-                {
-                    var command = new SQLiteCommand(table, connection);
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
+        ExecuteScripts(tables);
     }
 
     private void ApplyV105Changes()
     {
         var tables = ResourceHelper.GetStringResource("SqLite.V1.0.5-Changes.sql").Split(Environment.NewLine);
 
+        ExecuteScripts(tables);
+    }
+
+    private void ExecuteScripts(string[] tables)
+    {
         using (var connection = GetConnection())
         {
             foreach (var table in tables)
             {
-                if (!string.IsNullOrEmpty(table) && !table.StartsWith("-"))
+                if (!string.IsNullOrEmpty(table) && !table.StartsWith('-'))
                 {
                     var command = new SQLiteCommand(table, connection);
                     command.ExecuteNonQuery();
@@ -151,6 +146,7 @@ public partial class SqLiteHelper
                 }
             }
         }
+
         void GetElectricityReadingMetric(SQLiteConnection connection)
         {
             var stringBuilder = new StringBuilder();
