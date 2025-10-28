@@ -2,10 +2,10 @@
 
 namespace OvoData.Models.Api.Account;
 
-public class SupplyPoint
+public class UsageSupplyPoint
 {
     public string StartDate { get; set; } = string.Empty;
 
     [JsonPropertyName("supplyPoint")]
-    public SupplyPointDetail SupplyPointDetail { get; set; } = new();
+    public UsageSupplyPointDetail SupplyPointDetail { get; set; } = new();
 }

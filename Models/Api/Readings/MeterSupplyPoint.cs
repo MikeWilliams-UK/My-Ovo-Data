@@ -2,7 +2,7 @@
 
 namespace OvoData.Models.Api.Readings;
 
-public class AccountSupplyPoint
+public class MeterSupplyPoint
 {
     [JsonPropertyName("startDate")]
     public string StartDate { get; set; } = string.Empty;

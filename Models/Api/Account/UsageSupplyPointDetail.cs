@@ -1,6 +1,6 @@
 ﻿namespace OvoData.Models.Api.Account;
 
-public class SupplyPointDetail
+public class UsageSupplyPointDetail
 {
     public string FuelType { get; set; } = string.Empty;
 }

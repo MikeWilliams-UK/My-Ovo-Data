@@ -1,5 +1,6 @@
 ﻿using OvoData.Models;
 using OvoData.Models.Database.Readings;
+using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Text;
 using Meter = OvoData.Models.Database.Readings.Meter;
@@ -8,7 +9,7 @@ namespace OvoData.Helpers;
 
 public partial class SqLiteHelper
 {
-    public void UpsertSupplyPoint(SupplyPoint supplyPoint)
+    public void UpsertSupplyPoint(MySupplyPoint supplyPoint)
     {
         using (var connection = GetConnection())
         {
@@ -82,5 +83,42 @@ public partial class SqLiteHelper
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             command.ExecuteNonQuery();
         }
+    }
+
+
+    public List<Reading> FetchMeterReadings()
+    {
+        var result = new List<Reading>();
+
+        using (var connection = GetConnection())
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("SELECT Date, FuelType, TimingCategory, Value");
+            stringBuilder.AppendLine("FROM MeterReadings");
+            stringBuilder.AppendLine("ORDER BY Date DESC, FuelType ASC");
+
+            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
+
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader != null)
+                {
+                    while (reader.Read())
+                    {
+                        var dto = new Reading()
+                        {
+                            Date = FieldAsString(reader["Date"]),
+                            FuelType = StringHelper.ProperCase(FieldAsString(reader["FuelType"])),
+                            TimingCategory = FieldAsString(reader["TimingCategory"]),
+                            Value = FieldAsString(reader["Value"])
+                        };
+                        result.Add(dto);
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 }

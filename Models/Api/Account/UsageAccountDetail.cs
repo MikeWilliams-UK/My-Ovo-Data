@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace OvoData.Models.Api.Readings;
+namespace OvoData.Models.Api.Account;
 
-public class Account
+public class UsageAccountDetail
 {
-    [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("accountSupplyPoints")]
-    public List<AccountSupplyPoint> AccountSupplyPoints { get; set; } = new();
+    public List<UsageSupplyPoint> SupplyPoints { get; set; } = new();
 }

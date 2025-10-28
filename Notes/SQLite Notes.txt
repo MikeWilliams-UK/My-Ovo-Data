@@ -1,14 +1,20 @@
-﻿-- Look for missing HH consumption values
+﻿-- ---------------
+-- General Queries
+-- ---------------
+
+-- Look for missing HH consumption values
 SELECT  SUBSTR(StartTime, 0, 11) AS Date, COUNT(1) AS Count
 FROM HalfHourlyElectric
 GROUP BY SUBSTR(StartTime, 0, 11)
 HAVING COUNT(1) < 48
 
--- Collate Meter readings with "register Units
-SELECT UnitOfMeasurement, * FROM MeterRegisters
-SELECT * FROM MeterReadings
+-- Collate Meter readings with "register Units (maybe)
+SELECT UnitOfMeasurement, * FROM MeterRegisters;
+SELECT * FROM MeterReadings WHERE FuelType = 'ELECTRICITY' ORDER BY Date;
 
+-- ----------------------------
 -- All Tables in creation order
+-- ----------------------------
 SELECT name FROM sqlite_master WHERE type='table' and name = 'fred';
 
 7 Tables
@@ -29,7 +35,9 @@ Meters
 MeterRegisters
 Readings
 
--- Tidy Up (bfore a new run)
+-- ---------------------------------
+-- Tidy Up (bfore a new upgrade run)
+-- ---------------------------------
 DROP TABLE SupplyPoints;
 DROP TABLE Meters;
 DROP TABLE MeterRegisters;

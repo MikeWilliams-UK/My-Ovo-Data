@@ -10,5 +10,5 @@ CREATE UNIQUE INDEX Idx_Meters ON Meters (SerialNumber ASC);
 CREATE TABLE MeterRegisters (StartDate STRING PRIMARY KEY NOT NULL, EndDate STRING, FuelType STRING NOT NULL, Id STRING, TimingCategory STRING, UnitOfMeasurement STRING);
 CREATE UNIQUE INDEX Idx_MeterRegisters ON MeterRegisters (StartDate ASC);
 
-CREATE TABLE MeterReadings (Date STRING NOT NULL, MeterSerialNumber STRING, FuelType STRING NOT NULL, LifeCycle STRING, RegisterId STRING, Source STRING, TimingCategory STRING, Type STRING, Value DOUBLE NOT NULL, PRIMARY KEY (Date ASC, FuelType ASC));
+CREATE TABLE MeterReadings (Date STRING NOT NULL, MeterSerialNumber STRING, FuelType STRING NOT NULL, LifeCycle STRING, RegisterId STRING, Source STRING, TimingCategory STRING, Type STRING, [Value] DOUBLE NOT NULL, PRIMARY KEY ([Date] ASC, FuelType ASC));
 CREATE UNIQUE INDEX Idx_Readings ON MeterReadings (Date ASC, FuelType ASC);

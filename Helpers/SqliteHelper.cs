@@ -78,9 +78,9 @@ public partial class SqLiteHelper
         }
     }
 
-    public List<Summary> GetUsageInformation()
+    public List<MySummary> GetUsageInformation()
     {
-        var result = new List<Summary>();
+        var result = new List<MySummary>();
 
         using (var connection = GetConnection())
         {
@@ -197,7 +197,7 @@ public partial class SqLiteHelper
 
             if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
             {
-                var info = new Summary
+                var info = new MySummary
                 {
                     FuelType = StringHelper.ProperCase(fuelType),
                     InfoType = metric,

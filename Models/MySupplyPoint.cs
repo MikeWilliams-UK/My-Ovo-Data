@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OvoData.Models;
 
-public class SupplyPoint
+public class MySupplyPoint
 {
     public string Sprn { get; set; } = string.Empty;
     public string FuelType { get; set; } = string.Empty;

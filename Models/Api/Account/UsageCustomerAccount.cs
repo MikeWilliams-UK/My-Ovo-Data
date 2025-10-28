@@ -2,8 +2,8 @@
 
 namespace OvoData.Models.Api.Account;
 
-public class CustomerAccount
+public class UsageCustomerAccount
 {
     [JsonPropertyName("node")]
-    public Details Details { get; set; } = new();
+    public UsageDetails Details { get; set; } = new();
 }

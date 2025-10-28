@@ -255,7 +255,7 @@ public class HttpHelper
                 {
                     _logger?.DumpJson("Accounts-Response", JsonHelper.Prettify(responseContent));
                 }
-                var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, JsonSerializerOptions);
+                var accountsResponse = JsonSerializer.Deserialize<UsageResponse>(responseContent, JsonSerializerOptions);
                 if (accountsResponse != null)
                 {
                     var accounts = accountsResponse.Data.Customer.Relationships.Accounts.ToList();
@@ -419,9 +419,9 @@ public class HttpHelper
         return result;
     }
 
-    public List<Models.SupplyPoint> ObtainMeterReadings(string accountId)
+    public List<Models.MySupplyPoint> ObtainMeterReadings(string accountId)
     {
-        List<Models.SupplyPoint> result = [];
+        List<Models.MySupplyPoint> result = [];
 
         try
         {
@@ -450,17 +450,17 @@ public class HttpHelper
                 {
                     _logger?.DumpJson("MeterReadings-Response", JsonHelper.Prettify(responseContent));
                 }
-                var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
+                var readingsResponse = JsonSerializer.Deserialize<MeterReadingsResponse>(responseContent, JsonSerializerOptions);
                 if (readingsResponse != null)
                 {
                     Debug.WriteLine(readingsResponse.Data.Account.Id);
 
-                    var electric = readingsResponse.Data.Account.AccountSupplyPoints
+                    var electric = readingsResponse.Data.Account.MeterSupplyPoints
                         .Where(s => s.SupplyPoint.FuelType.Equals(Constants.FuelTypeElectricity))
                         .ToList();
                     if (electric.Any())
                     {
-                        var ovoSupplyPoint = new Models.SupplyPoint
+                        var ovoSupplyPoint = new Models.MySupplyPoint
                         {
                             Sprn = electric[0].SupplyPoint.Sprn,
                             FuelType = Constants.FuelTypeElectricity
@@ -533,12 +533,12 @@ public class HttpHelper
                         }
                     }
 
-                    var gas = readingsResponse.Data.Account.AccountSupplyPoints
+                    var gas = readingsResponse.Data.Account.MeterSupplyPoints
                         .Where(s => s.SupplyPoint.FuelType.Equals(Constants.FuelTypeGas))
                         .ToList();
                     if (gas.Any())
                     {
-                        var ovoSupplyPoint = new Models.SupplyPoint
+                        var ovoSupplyPoint = new Models.MySupplyPoint
                         {
                             Sprn = gas[0].SupplyPoint.Sprn,
                             FuelType = Constants.FuelTypeGas

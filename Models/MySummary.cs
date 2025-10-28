@@ -1,6 +1,6 @@
 ﻿namespace OvoData.Models;
 
-public class Summary
+public class MySummary
 {
     public string FuelType { get; set; } = string.Empty;
     public string InfoType { get; set; } = string.Empty;

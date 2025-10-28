@@ -3,8 +3,8 @@ using System.Text.Json.Serialization;
 
 namespace OvoData.Models.Api.Account;
 
-public class Relationships
+public class UsageRelationships
 {
     [JsonPropertyName("edges")]
-    public List<CustomerAccount> Accounts { get; set; } = new();
+    public List<UsageCustomerAccount> Accounts { get; set; } = new();
 }

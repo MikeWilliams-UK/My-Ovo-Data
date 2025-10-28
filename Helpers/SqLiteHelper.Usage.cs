@@ -57,41 +57,7 @@ public partial class SqLiteHelper
         }
     }
 
-    public List<Reading> FetchMeterReadings()
-    {
-        var result = new List<Reading>();
 
-        using (var connection = GetConnection())
-        {
-            var stringBuilder = new StringBuilder();
-
-            stringBuilder.AppendLine("SELECT Date, FuelType, TimingCategory, Value");
-            stringBuilder.AppendLine("FROM MeterReadings");
-            stringBuilder.AppendLine("ORDER BY Date DESC, FuelType ASC");
-
-            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
-
-            using (var reader = command.ExecuteReader())
-            {
-                if (reader != null)
-                {
-                    while (reader.Read())
-                    {
-                        var dto = new Reading()
-                        {
-                            Date = FieldAsString(reader["Date"]),
-                            FuelType = StringHelper.ProperCase(FieldAsString(reader["FuelType"])),
-                            TimingCategory = FieldAsString(reader["TimingCategory"]),
-                            Value = FieldAsString(reader["Value"])
-                        };
-                        result.Add(dto);
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
 
     public List<Monthly> FetchMonthly(string fuelType)
     {

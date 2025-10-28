@@ -2,8 +2,8 @@
 
 namespace OvoData.Models.Api.Readings;
 
-public class Data
+public class MeterReadingsData
 {
     [JsonPropertyName("account")]
-    public Account Account { get; set; } = new();
+    public MeterReadingsAccount Account { get; set; } = new();
 }
