@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Text;
-using OvoData.Models.Database.Readings;
 
 namespace OvoData.Helpers;
 

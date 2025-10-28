@@ -3,11 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace OvoData.Models.Api.Readings;
 
-public class MeterReadingsAccount
+public class ReadingsAccount
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("accountSupplyPoints")]
-    public List<MeterSupplyPoint> MeterSupplyPoints { get; set; } = new();
+    public List<ReadingsAccountSupplyPoint> MeterSupplyPoints { get; set; } = new();
 }

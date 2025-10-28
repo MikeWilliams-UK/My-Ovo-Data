@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace OvoData.Models.Api.Readings;
 
-public class MeterReadings
+public class Readings
 {
     [JsonPropertyName("edges")]
     public List<MeterReadingEdge> Edges { get; set; } = new();

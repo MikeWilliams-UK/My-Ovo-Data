@@ -1,9 +1,9 @@
 ﻿using OvoData.Models;
+using OvoData.Models.Api.Readings;
 using OvoData.Models.Database.Readings;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Text;
-using Meter = OvoData.Models.Database.Readings.Meter;
 
 namespace OvoData.Helpers;
 
@@ -85,6 +85,41 @@ public partial class SqLiteHelper
         }
     }
 
+    public List<MeterRegister> FetchMeterRegisters()
+    {
+        var result = new List<MeterRegister>();
+
+        using (var connection = GetConnection())
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("SELECT StartDate, EndDate, FuelType, TimingCategory, UnitOfMeasurement");
+            stringBuilder.AppendLine("FROM MeterRegisters");
+            stringBuilder.AppendLine("ORDER BY StartDate DESC, FuelType ASC");
+
+            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
+
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader != null)
+                {
+                    while (reader.Read())
+                    {
+                        var dto = new MeterRegister()
+                        {
+                            RegisterStartDate = FieldAsString(reader["StartDate"]),
+                            RegisterEndDate = FieldAsString(reader["EndDate"]),
+                            TimingCategory = FieldAsString(reader["TimingCategory"]),
+                            UnitMeasurement = FieldAsString(reader["UnitOfMeasurement"])
+                        };
+                        result.Add(dto);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
 
     public List<Reading> FetchMeterReadings()
     {
@@ -95,7 +130,7 @@ public partial class SqLiteHelper
             var stringBuilder = new StringBuilder();
 
             stringBuilder.AppendLine("SELECT Date, FuelType, TimingCategory, Value");
-            stringBuilder.AppendLine("FROM MeterReadings");
+            stringBuilder.AppendLine("FROM Readings");
             stringBuilder.AppendLine("ORDER BY Date DESC, FuelType ASC");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);

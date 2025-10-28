@@ -448,9 +448,9 @@ public class HttpHelper
 
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    _logger?.DumpJson("MeterReadings-Response", JsonHelper.Prettify(responseContent));
+                    _logger?.DumpJson("Readings-Response", JsonHelper.Prettify(responseContent));
                 }
-                var readingsResponse = JsonSerializer.Deserialize<MeterReadingsResponse>(responseContent, JsonSerializerOptions);
+                var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
                 if (readingsResponse != null)
                 {
                     Debug.WriteLine(readingsResponse.Data.Account.Id);
@@ -507,7 +507,7 @@ public class HttpHelper
                                 ovoSupplyPoint.Meters.Add(ovoMeter);
                             }
 
-                            foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
+                            foreach (var edge in accountSupplyPoint.Readings.Edges)
                             {
                                 var node = edge.MeterNode.MeterReadingData;
                                 var ovoMeterReading = new Reading
@@ -585,7 +585,7 @@ public class HttpHelper
                                 ovoSupplyPoint.Meters.Add(ovoMeter);
                             }
 
-                            foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
+                            foreach (var edge in accountSupplyPoint.Readings.Edges)
                             {
                                 var node = edge.MeterNode.MeterReadingData;
                                 var ovoMeterReading = new Reading

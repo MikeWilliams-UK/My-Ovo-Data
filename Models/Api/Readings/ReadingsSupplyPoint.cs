@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace OvoData.Models.Api.Readings;
 
-public class SupplyPoint
+public class ReadingsSupplyPoint
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;

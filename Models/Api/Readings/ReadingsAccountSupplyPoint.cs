@@ -2,7 +2,7 @@
 
 namespace OvoData.Models.Api.Readings;
 
-public class MeterSupplyPoint
+public class ReadingsAccountSupplyPoint
 {
     [JsonPropertyName("startDate")]
     public string StartDate { get; set; } = string.Empty;
@@ -11,8 +11,8 @@ public class MeterSupplyPoint
     public string End { get; set; } = string.Empty;
 
     [JsonPropertyName("supplyPoint")]
-    public SupplyPoint SupplyPoint { get; set; } = new();
+    public ReadingsSupplyPoint SupplyPoint { get; set; } = new();
 
     [JsonPropertyName("meterReads_nextV1")]
-    public MeterReadings MeterReadings { get; set; } = new();
+    public Readings Readings { get; set; } = new();
 }
