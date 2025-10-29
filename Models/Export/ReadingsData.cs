@@ -6,4 +6,5 @@ public class ReadingsData
     public string FuelType { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
+    public string UnitOfMeasure { get; set; } = string.Empty;
 }

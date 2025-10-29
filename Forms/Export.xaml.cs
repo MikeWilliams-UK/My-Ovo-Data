@@ -149,7 +149,6 @@ namespace OvoData.Forms
                     csv.WriteRecords(_readingsData.Values.ToList());
                 }
             }
-
         }
 
         private void ExportAsExcel()
@@ -317,22 +316,28 @@ namespace OvoData.Forms
             var meterRegisters = helper.FetchMeterRegisters();
             foreach (var register in meterRegisters)
             {
-                DateTime.TryParseExact(register.RegisterStartDate, Constants.ShortDateFormat,
+                DateTime.TryParseExact(register.StartDate, Constants.ShortDateFormat,
                     CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal,
                     out var startDate);
 
-                DateTime.TryParseExact(register.RegisterStartDate, Constants.ShortDateFormat,
+                var endDate = DateTime.MaxValue;
+
+                if (!string.IsNullOrEmpty(register.EndDate))
+                {
+                    DateTime.TryParseExact(register.EndDate, Constants.ShortDateFormat,
                         CultureInfo.InvariantCulture,
                         DateTimeStyles.AssumeUniversal,
-                        out var endDate);
+                        out endDate);
+                }
 
-                var r = new RegistersData
+                var r = new RegistersData()
                 {
                     StartDate = startDate,
                     EndDate = endDate,
                     TimingCategory = register.TimingCategory,
-                    UnitOfMeasurement = register.UnitMeasurement
+                    FuelType = register.FuelType,
+                    UnitOfMeasurement = register.UnitOfMeasurement
                 };
 
                 listOfRegisters.Add(r);
@@ -341,12 +346,20 @@ namespace OvoData.Forms
             var meterReadings = helper.FetchMeterReadings();
             foreach (var reading in meterReadings)
             {
+                var readingDate = DateTime.ParseExact(reading.Date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var data = listOfRegisters
+                    .Where(register => (register.EndDate >= readingDate && register.StartDate < readingDate)
+                                                                         && register.FuelType.Equals(reading.FuelType))
+                    .Select(r => r.UnitOfMeasurement)
+                    .FirstOrDefault();
+
                 var readingsData = new ReadingsData
                 {
                     Date = reading.Date,
-                    FuelType = reading.FuelType,
+                    FuelType = StringHelper.ProperCase(reading.FuelType),
                     Category = reading.TimingCategory,
-                    Value = reading.Value
+                    Value = reading.Value,
+                    UnitOfMeasure = data!
                 };
                 result.Add($"{reading.Date}-{reading.FuelType}", readingsData);
             }

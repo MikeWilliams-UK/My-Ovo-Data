@@ -56,8 +56,6 @@ public partial class SqLiteHelper
         }
     }
 
-
-
     public List<SqLiteMonthly> FetchMonthly(string fuelType)
     {
         var result = new List<SqLiteMonthly>();

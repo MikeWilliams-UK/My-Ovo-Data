@@ -1,5 +1,4 @@
 ﻿using OvoData.Models;
-using OvoData.Models.Api.Readings;
 using OvoData.Models.Database.Readings;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -85,9 +84,9 @@ public partial class SqLiteHelper
         }
     }
 
-    public List<MeterRegister> FetchMeterRegisters()
+    public List<SqLiteRegister> FetchMeterRegisters()
     {
-        var result = new List<MeterRegister>();
+        var result = new List<SqLiteRegister>();
 
         using (var connection = GetConnection())
         {
@@ -105,12 +104,13 @@ public partial class SqLiteHelper
                 {
                     while (reader.Read())
                     {
-                        var dto = new MeterRegister()
+                        var dto = new SqLiteRegister()
                         {
-                            RegisterStartDate = FieldAsString(reader["StartDate"]),
-                            RegisterEndDate = FieldAsString(reader["EndDate"]),
+                            StartDate = FieldAsString(reader["StartDate"]),
+                            EndDate = FieldAsString(reader["EndDate"]),
+                            FuelType = FieldAsString(reader["FuelType"]),
                             TimingCategory = FieldAsString(reader["TimingCategory"]),
-                            UnitMeasurement = FieldAsString(reader["UnitOfMeasurement"])
+                            UnitOfMeasurement = FieldAsString(reader["UnitOfMeasurement"])
                         };
                         result.Add(dto);
                     }
@@ -130,7 +130,7 @@ public partial class SqLiteHelper
             var stringBuilder = new StringBuilder();
 
             stringBuilder.AppendLine("SELECT Date, FuelType, TimingCategory, Value");
-            stringBuilder.AppendLine("FROM Readings");
+            stringBuilder.AppendLine("FROM MeterReadings");
             stringBuilder.AppendLine("ORDER BY Date DESC, FuelType ASC");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
@@ -144,7 +144,7 @@ public partial class SqLiteHelper
                         var dto = new SqLiteReading()
                         {
                             Date = FieldAsString(reader["Date"]),
-                            FuelType = StringHelper.ProperCase(FieldAsString(reader["FuelType"])),
+                            FuelType = FieldAsString(reader["FuelType"]),
                             TimingCategory = FieldAsString(reader["TimingCategory"]),
                             Value = FieldAsString(reader["Value"])
                         };

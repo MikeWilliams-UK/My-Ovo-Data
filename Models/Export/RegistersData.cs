@@ -10,5 +10,4 @@ public class RegistersData
     public string FuelType { get; set; } = string.Empty;
     public string TimingCategory { get; set; } = string.Empty;
     public string UnitOfMeasurement { get; set; } = string.Empty;
-
 }
