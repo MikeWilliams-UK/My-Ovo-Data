@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Your OVO SMART meter data"
-    Width="500"
+    Width="600"
     Height="450"
     MinWidth="400"
     MinHeight="350"
@@ -125,6 +125,10 @@
                         Width="1*"
                         Binding="{Binding To}"
                         Header="To:" />
+                    <DataGridTextColumn
+                        Width="1*"
+                        Binding="{Binding Records}"
+                        Header="Records:" />
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>

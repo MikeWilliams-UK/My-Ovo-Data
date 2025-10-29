@@ -191,6 +191,15 @@ public partial class SqLiteHelper
             var to = FieldAsString(reader["Max"]);
             var count = FieldAsInt(reader["count"]);
 
+            if (from.Length > 16)
+            {
+                from = from.Substring(0, 16);
+            }
+            if (to.Length > 16)
+            {
+                to = to.Substring(0, 16);
+            }
+
             if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
             {
                 var info = new MySummary
@@ -198,7 +207,8 @@ public partial class SqLiteHelper
                     FuelType = StringHelper.ProperCase(fuelType),
                     InfoType = metric,
                     From = from,
-                    To = to
+                    To = to,
+                    Records = $"{count:#,##0}"
                 };
 
                 result.Add(info);
