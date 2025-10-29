@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Text;
-using OvoData.Models.Database.Readings;
 
 namespace OvoData.Helpers;
 
@@ -59,9 +58,9 @@ public partial class SqLiteHelper
 
 
 
-    public List<Monthly> FetchMonthly(string fuelType)
+    public List<SqLiteMonthly> FetchMonthly(string fuelType)
     {
-        var result = new List<Monthly>();
+        var result = new List<SqLiteMonthly>();
 
         using (var connection = GetConnection())
         {
@@ -79,7 +78,7 @@ public partial class SqLiteHelper
                 {
                     while (reader.Read())
                     {
-                        var dto = new Monthly
+                        var dto = new SqLiteMonthly
                         {
                             Month = FieldAsString(reader["Month"]),
                             Consumption = FieldAsDouble(reader["Consumption"]),
@@ -143,9 +142,9 @@ public partial class SqLiteHelper
         }
     }
 
-    public List<Daily> FetchDaily(string fuelType)
+    public List<SqLiteDaily> FetchDaily(string fuelType)
     {
-        var result = new List<Daily>();
+        var result = new List<SqLiteDaily>();
 
         using (var connection = GetConnection())
         {
@@ -163,7 +162,7 @@ public partial class SqLiteHelper
                 {
                     while (reader.Read())
                     {
-                        var dto = new Daily
+                        var dto = new SqLiteDaily
                         {
                             Day = FieldAsString(reader["Day"]),
                             Consumption = FieldAsDouble(reader["Consumption"]),
@@ -249,9 +248,9 @@ public partial class SqLiteHelper
         }
     }
 
-    public List<HalfHourly> FetchHalfHourly(string fuelType)
+    public List<SqLiteHalfHourly> FetchHalfHourly(string fuelType)
     {
-        var result = new List<HalfHourly>();
+        var result = new List<SqLiteHalfHourly>();
 
         using (var connection = GetConnection())
         {
@@ -269,7 +268,7 @@ public partial class SqLiteHelper
                 {
                     while (reader.Read())
                     {
-                        var dto = new HalfHourly
+                        var dto = new SqLiteHalfHourly
                         {
                             StartTime = FieldAsString(reader["StartTime"]),
                             Consumption = FieldAsDouble(reader["Consumption"])

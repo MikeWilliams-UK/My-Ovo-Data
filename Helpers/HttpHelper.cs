@@ -154,8 +154,6 @@ public class HttpHelper
 
     private void CheckTokens()
     {
-        var now = DateTime.Now;
-
         if (Tokens.AccessToken.HasExpired)
         {
             Debug.WriteLine($"Access token expired at {Tokens.AccessToken.ExpiresAtTime:HH:mm:ss}");
@@ -448,9 +446,9 @@ public class HttpHelper
 
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    _logger?.DumpJson("MeterReadings-Response", JsonHelper.Prettify(responseContent));
+                    _logger?.DumpJson("Readings-Response", JsonHelper.Prettify(responseContent));
                 }
-                var readingsResponse = JsonSerializer.Deserialize<MeterReadingsResponse>(responseContent, JsonSerializerOptions);
+                var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
                 if (readingsResponse != null)
                 {
                     Debug.WriteLine(readingsResponse.Data.Account.Id);
@@ -470,16 +468,16 @@ public class HttpHelper
                         {
                             foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
                             {
-                                var ovoMeter = new Meter
+                                var ovoMeter = new SqLiteMeter
                                 {
                                     SerialNumber = meter.MeterSerialNumber,
-                                    Type = meter.Type,
+                                    FuelType = meter.Type,
                                     Status = meter.Status
                                 };
 
                                 foreach (var detail in meter.MeterRegisters)
                                 {
-                                    var ovoMeterRegister = new Register
+                                    var ovoMeterRegister = new SqLiteRegister
                                     {
                                         TimingCategory = detail.TimingCategory,
                                         UnitOfMeasurement = detail.UnitMeasurement,
@@ -489,14 +487,17 @@ public class HttpHelper
                                     if (DateTime.TryParseExact(detail.RegisterStartDate,
                                             Constants.ZuluDateTimeFormat,
                                             CultureInfo.InvariantCulture,
-                                            DateTimeStyles.AssumeUniversal, out var startDate))
+                                            DateTimeStyles.AssumeUniversal,
+                                            out var startDate))
                                     {
                                         ovoMeterRegister.StartDate = DateHelper.IsoDateOnly(startDate);
                                     }
+
                                     if (DateTime.TryParseExact(detail.RegisterEndDate,
                                             Constants.ZuluDateTimeFormat,
                                             CultureInfo.InvariantCulture,
-                                            DateTimeStyles.AssumeUniversal, out var endDate))
+                                            DateTimeStyles.AssumeUniversal,
+                                            out var endDate))
                                     {
                                         ovoMeterRegister.EndDate = DateHelper.IsoDateOnly(endDate);
                                     }
@@ -507,10 +508,10 @@ public class HttpHelper
                                 ovoSupplyPoint.Meters.Add(ovoMeter);
                             }
 
-                            foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
+                            foreach (var edge in accountSupplyPoint.Readings.Edges)
                             {
                                 var node = edge.MeterNode.MeterReadingData;
-                                var ovoMeterReading = new Reading
+                                var ovoMeterReading = new SqLiteReading
                                 {
                                     FuelType = node.Type,
                                     Date = node.Date,
@@ -548,16 +549,16 @@ public class HttpHelper
                         {
                             foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
                             {
-                                var ovoMeter = new Meter
+                                var ovoMeter = new SqLiteMeter
                                 {
                                     SerialNumber = meter.MeterSerialNumber,
-                                    Type = meter.Type,
+                                    FuelType = meter.Type,
                                     Status = meter.Status
                                 };
 
                                 foreach (var detail in meter.MeterRegisters)
                                 {
-                                    var ovoMeterRegister = new Register
+                                    var ovoMeterRegister = new SqLiteRegister
                                     {
                                         TimingCategory = detail.TimingCategory,
                                         UnitOfMeasurement = detail.UnitMeasurement,
@@ -585,10 +586,10 @@ public class HttpHelper
                                 ovoSupplyPoint.Meters.Add(ovoMeter);
                             }
 
-                            foreach (var edge in accountSupplyPoint.MeterReadings.Edges)
+                            foreach (var edge in accountSupplyPoint.Readings.Edges)
                             {
                                 var node = edge.MeterNode.MeterReadingData;
-                                var ovoMeterReading = new Reading
+                                var ovoMeterReading = new SqLiteReading
                                 {
                                     FuelType = node.Type,
                                     Date = node.Date,
