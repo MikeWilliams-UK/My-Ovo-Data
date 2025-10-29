@@ -205,7 +205,7 @@ public partial class SqLiteHelper
                 var info = new MySummary
                 {
                     FuelType = StringHelper.ProperCase(fuelType),
-                    InfoType = metric,
+                    Metric = metric,
                     From = from,
                     To = to,
                     Records = $"{count:#,##0}"
