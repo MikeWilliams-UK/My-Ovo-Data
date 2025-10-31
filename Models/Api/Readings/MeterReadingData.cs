@@ -27,8 +27,8 @@ public class MeterReadingData
     public string GasMeterValue { get; set; } = string.Empty;
 
     /// <summary>
-    /// If meter type is ELECTRIC then value lives in the first register value
+    /// If meter type is ELECTRIC then value lives in the first electric meter value
     /// </summary>
     [JsonPropertyName("registers")]
-    public List<MeterReadingValue> ElectricMeterValues { get; set; } = [];
+    public List<ElectricMeterValue> ElectricMeterValues { get; set; } = [];
 }
