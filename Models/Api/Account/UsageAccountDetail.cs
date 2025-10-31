@@ -8,5 +8,5 @@ public class UsageAccountDetail
     public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("accountSupplyPoints")]
-    public List<UsageSupplyPoint> SupplyPoints { get; set; } = new();
+    public List<UsageSupplyPoint> SupplyPoints { get; set; } = [];
 }

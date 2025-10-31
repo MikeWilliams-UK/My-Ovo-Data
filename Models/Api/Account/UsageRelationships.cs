@@ -6,5 +6,5 @@ namespace OvoData.Models.Api.Account;
 public class UsageRelationships
 {
     [JsonPropertyName("edges")]
-    public List<UsageCustomerAccount> Accounts { get; set; } = new();
+    public List<UsageCustomerAccount> Accounts { get; set; } = [];
 }

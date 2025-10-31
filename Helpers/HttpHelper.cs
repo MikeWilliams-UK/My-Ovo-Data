@@ -520,11 +520,11 @@ public class HttpHelper
                                     MeterSerialNumber = node.MeterSerialNumber
                                 };
 
-                                if (node.MeterReadingValues.Count > 0)
+                                if (node.ElectricMeterValues.Count > 0)
                                 {
-                                    ovoMeterReading.TimingCategory = node.MeterReadingValues[0].TimingCategory;
-                                    ovoMeterReading.RegisterId = node.MeterReadingValues[0].RegisterId;
-                                    ovoMeterReading.Value = node.MeterReadingValues[0].Value;
+                                    ovoMeterReading.TimingCategory = node.ElectricMeterValues[0].TimingCategory;
+                                    ovoMeterReading.RegisterId = node.ElectricMeterValues[0].RegisterId;
+                                    ovoMeterReading.Value = node.ElectricMeterValues[0].Value;
                                 }
 
                                 ovoSupplyPoint.Readings.Add(ovoMeterReading);
@@ -596,7 +596,7 @@ public class HttpHelper
                                     LifeCycle = node.Lifecycle,
                                     Source = node.Source,
                                     MeterSerialNumber = node.MeterSerialNumber,
-                                    Value = node.Value
+                                    Value = node.GasMeterValue
                                 };
 
                                 ovoSupplyPoint.Readings.Add(ovoMeterReading);

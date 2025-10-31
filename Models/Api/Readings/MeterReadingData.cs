@@ -22,11 +22,13 @@ public class MeterReadingData
 
     /// <summary>
     /// If meter type is GAS then value lives here
-    /// If meter type is ELECTRIC then value lives in the first register value
     /// </summary>
     [JsonPropertyName("value")]
-    public string Value { get; set; } = string.Empty;
+    public string GasMeterValue { get; set; } = string.Empty;
 
+    /// <summary>
+    /// If meter type is ELECTRIC then value lives in the first register value
+    /// </summary>
     [JsonPropertyName("registers")]
-    public List<MeterReadingValue> MeterReadingValues { get; set; } = [];
+    public List<MeterReadingValue> ElectricMeterValues { get; set; } = [];
 }
