@@ -1,0 +1,7 @@
+{
+  "operationName": "Bootstrap",
+  "variables": {
+    "customerId": "[[customerGuid]]"
+  },
+  "query": "[[query]]"
+}

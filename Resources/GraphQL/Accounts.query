@@ -1,0 +1,24 @@
+﻿query Bootstrap($customerId: ID!) {
+  customer_nextV1(id: $customerId) {
+    id
+    customerAccountRelationships {
+      edges {
+        node {
+          account {
+            id
+            accountSupplyPoints {
+              ...AccountSupplyPoint
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment AccountSupplyPoint on AccountSupplyPoint {
+  startDate
+  supplyPoint {
+    fuelType
+  }
+}

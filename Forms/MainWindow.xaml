@@ -1,0 +1,232 @@
+﻿<Window
+    x:Class="OvoData.Forms.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Your OVO SMART meter data"
+    Width="500"
+    Height="450"
+    MinWidth="400"
+    MinHeight="350"
+    Icon="/Images/Ovo.ico"
+    Loaded="OnLoaded_MainWindow"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  Login  -->
+        <Grid Grid.Row="0" Height="Auto">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="75" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Grid.Row="0"
+                Grid.Column="0"
+                Margin="2"
+                VerticalAlignment="Center">
+                Username:
+            </TextBlock>
+            <TextBox
+                x:Name="UserName"
+                Grid.Row="0"
+                Grid.Column="1"
+                Margin="2"
+                VerticalAlignment="Center" />
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="2"
+                VerticalAlignment="Center">
+                Password:
+            </TextBlock>
+            <PasswordBox
+                x:Name="Password"
+                Grid.Row="1"
+                Grid.Column="1"
+                Margin="2"
+                VerticalAlignment="Center"
+                PasswordChar="•" />
+            <Button
+                x:Name="Login"
+                Grid.Row="0"
+                Grid.RowSpan="2"
+                Grid.Column="2"
+                Width="50"
+                Margin="2"
+                Click="OnClick_Login">
+                Login
+            </Button>
+        </Grid>
+
+        <!--  Accounts and Statistics  -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!--  Accounts  -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="75" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Margin="2">Accounts:</TextBlock>
+                <ListView
+                    x:Name="Accounts"
+                    Grid.Column="1"
+                    Margin="2"
+                    SelectionChanged="OnSelectionChanged_Accounts" />
+            </Grid>
+
+            <!--  Statistics  -->
+            <DataGrid
+                x:Name="AccountStatistics"
+                Grid.Row="1"
+                Height="Auto"
+                Margin="1"
+                AutoGenerateColumns="False"
+                CanUserAddRows="False"
+                GridLinesVisibility="None"
+                SelectionMode="Single">
+                <DataGrid.RowHeaderStyle>
+                    <Style TargetType="DataGridRowHeader">
+                        <Setter Property="Width" Value="0" />
+                    </Style>
+                </DataGrid.RowHeaderStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn
+                        Width="1*"
+                        Binding="{Binding FuelType}"
+                        Header="Fuel:" />
+                    <DataGridTextColumn
+                        Width="2*"
+                        Binding="{Binding Metric}"
+                        Header="Metric:" />
+                    <DataGridTextColumn
+                        Width="2*"
+                        Binding="{Binding From}"
+                        Header="From:" />
+                    <DataGridTextColumn
+                        Width="2*"
+                        Binding="{Binding To}"
+                        Header="To:" />
+                    <DataGridTextColumn
+                        Width="2*"
+                        Binding="{Binding Records}"
+                        Header="Records:" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!--  Controls  -->
+        <Grid Grid.Row="2" Margin="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <ComboBox
+                x:Name="StopWhen"
+                Grid.Row="0"
+                Grid.Column="0"
+                Grid.ColumnSpan="4"
+                Margin="0,0,0,1"
+                IsEnabled="False"
+                SelectionChanged="OnSelectionChanged_StopWhen"
+                ToolTip="Select range of usage data to fetch" />
+
+            <Button
+                x:Name="ReadUsage"
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="0,1,1,1"
+                VerticalAlignment="Center"
+                Click="OnClick_ReadUsage"
+                IsEnabled="False"
+                ToolTip="Get Usage data for selected account">
+                Get Usage
+            </Button>
+            <Button
+                x:Name="ReadMeterReadings"
+                Grid.Row="1"
+                Grid.Column="1"
+                Margin="1"
+                VerticalAlignment="Center"
+                Click="OnClick_ReadMeterReadings"
+                IsEnabled="False"
+                ToolTip="Get Meter Readings for selected account">
+                Get Readings
+            </Button>
+            <Button
+                x:Name="ExportUsage"
+                Grid.Row="1"
+                Grid.Column="2"
+                Margin="1"
+                VerticalAlignment="Center"
+                Click="OnClick_ExportUsage"
+                IsEnabled="False"
+                ToolTip="Export data for selected account">
+                Export Data
+            </Button>
+            <Button
+                x:Name="CancelOperations"
+                Grid.Row="1"
+                Grid.Column="3"
+                Margin="1,1,0,1"
+                VerticalContentAlignment="Center"
+                Click="OnClick_CancelOperations"
+                IsEnabled="False"
+                ToolTip="Cancel Operation(s)">
+                Cancel
+            </Button>
+        </Grid>
+
+        <!--  Status Bar  -->
+        <TextBlock
+            x:Name="Status"
+            Grid.Row="3"
+            Margin="1"
+            Padding="5"
+            VerticalAlignment="Center"
+            Background="LightGray">
+            Status ...
+        </TextBlock>
+
+        <!--  Tokens Visualiser  -->
+        <TextBlock
+            x:Name="TokensVisualiser"
+            Grid.Row="4"
+            Margin="1"
+            Padding="5"
+            VerticalAlignment="Center"
+            Background="LightGray">
+            <Run x:Name="Label1" Text="Now:" />
+            <Run x:Name="Value1" Text="00:00:00" />
+            <Run x:Name="Label2" Text="Access:" />
+            <Run x:Name="Value2" Text="00:00:00" />
+            <Run x:Name="Label3" Text="Refresh:" />
+            <Run x:Name="Value3" Text="00:00:00" />
+        </TextBlock>
+    </Grid>
+</Window>

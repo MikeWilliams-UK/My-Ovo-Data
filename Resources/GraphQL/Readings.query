@@ -1,0 +1,66 @@
+﻿query MeterReads_nextV1($accountId: ID!, $query: MeterReadsInputV2!) {
+  account(id: $accountId) {
+    id
+    accountSupplyPoints {
+      ...AccountSupplyPointReads
+    }
+  }
+}
+
+fragment AccountSupplyPointReads on AccountSupplyPoint {
+  startDate
+  end {
+    date
+  }
+  supplyPoint {
+    timezone
+    sprn
+    meterTechnicalDetails {
+      ...MeterTechnicalDetails
+    }
+    region
+    fuelType
+    id
+  }
+  meterReads_nextV1(query: $query, last: 10000) {
+    edges {
+      node {
+        reading {
+          ...MeterRead
+        }
+      }
+    }
+  }
+}
+
+fragment MeterTechnicalDetails on SupplyPointMeterTechnicalDetails {
+  registers {
+    registerId
+    timingCategory
+    numberOfDigits
+    unitMeasurement
+    registerStartDate
+    registerEndDate
+  }
+  type
+  meterSerialNumber
+  status
+}
+
+fragment MeterRead on MeterRead_nextV1 {
+  type
+  date
+  lifecycle
+  source
+  meterSerialNumber
+  ... on ElectricityMeterRead_nextV2 {
+    registers {
+      registerId
+      timingCategory
+      value
+    }
+  }
+  ... on GasMeterRead_nextV2 {
+    value
+  }
+}

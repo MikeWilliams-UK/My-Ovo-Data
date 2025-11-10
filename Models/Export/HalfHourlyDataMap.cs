@@ -14,7 +14,7 @@ public sealed class HalfHourlyDataMap : ClassMap<HalfHourlyData>
             {
                 return DateTime.ParseExact(r.StartTime, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
             });
-        Map(x => x.ElectricKwh).Name("Electric Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
-        Map(x => x.GasKwh).Name("Gas Kwh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.ElectricKwh).Name("Electric kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
+        Map(x => x.GasKwh).Name("Gas kWh").ColumnType(ColumnType.Number).Style(Styles.Kwh);
     }
 }

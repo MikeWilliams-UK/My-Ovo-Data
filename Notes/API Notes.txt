@@ -1,0 +1,28 @@
+﻿V1.0.4
+https://my.ovoenergy.com/api/v2/auth/login
+https://my.ovoenergy.com/api/v2/auth/token
+https://api.eu1.prod.kaluza.com/graphql/1
+https://smartpaymapi.ovoenergy.com/bal/api/graphql
+
+
+Prior to V1.0.4
+Logging in ...
+https://my.ovoenergy.com/api/v2/auth/token
+https://smartpaymapi.ovoenergy.com/first-login/api/bootstrap/v2/
+https://smartpaymapi.ovoenergy.com/first-login/api/migration/v1/{account_id}
+
+Data ...
+https://smartpaymapi.ovoenergy.com/orex/api/supply-points/account/{account_id}
+https://smartpaymapi.ovoenergy.com/rlc/rac-public-api/api/v5/supplypoints/gas/{mpxn}/meters/{msn}/readings?from=2014-12-01
+https://smartpaymapi.ovoenergy.com/rlc/rac-public-api/api/v5/supplypoints/electricity/{mpxn}/meters/{msn}/readings?from=2014-12-01
+
+https://smartpaymapi.ovoenergy.com/homeplan/{account_id}
+https://smartpaymapi.ovoenergy.com/orex/api/contracts/{account_id}
+https://smartpaymapi.ovoenergy.com/green/account/{account_id}/products
+https://smartpaymapi.ovoenergy.com/bast/api/graphql
+https://smartpaymapi.ovoenergy.com/pace/recommended-dds/v1/{account_id}/recommended-direct-debit
+
+https://smartpaymapi.ovoenergy.com/carbon-api/{account_id}/v2/efficiency/weekly?startDate=20230907&endDate=20230914
+https://smartpaymapi.ovoenergy.com/carbon-bff/{account_id}/breakdown
+
+https://smartpaymapi.ovoenergy.com/api/v2/marketing?accountId={account_id}&jobType=Credit

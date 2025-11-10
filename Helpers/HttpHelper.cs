@@ -1,9 +1,13 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using Microsoft.Extensions.Configuration;
-using OvoData.Models.OvoApi;
+﻿using Microsoft.Extensions.Configuration;
+using OvoData.Models.Api.Account;
+using OvoData.Models.Api.Login;
+using OvoData.Models.Api.Readings;
+using OvoData.Models.Api.Usage;
+using OvoData.Models.Database.Readings;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -18,15 +22,29 @@ public class HttpHelper
     private readonly HttpClient _httpClient1 = new();
     private readonly HttpClient _httpClient2 = new();
     private readonly HttpClient _httpClient3 = new();
-    private readonly IConfigurationRoot _configuration;
 
+    private readonly IConfigurationRoot _configuration;
+    private LoginRequest? _loginRequest;
+    private Logger? _logger;
+
+    public Tokens Tokens { get; set; } = new();
+
+    /// <summary>
+    /// This helper <b>MUST</b> only be instantiated ONCE, otherwise obtaining subsequent Access Tokens fails.
+    /// </summary>
+    /// <param name="configuration"></param>
     public HttpHelper(IConfigurationRoot configuration)
     {
         ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         _configuration = configuration;
     }
 
-    private static JsonSerializerOptions _options = new JsonSerializerOptions()
+    public void SetLogger(Logger logger)
+    {
+        _logger = logger;
+    }
+
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
@@ -34,173 +52,267 @@ public class HttpHelper
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public bool Login(string username, string password, out Tokens tokens, out List<OvoAccount> ovoAccounts)
+    public bool Login(string username, string password, out List<Models.Account> ovoAccounts)
     {
         var result = false;
-        ovoAccounts = new List<OvoAccount>();
-        tokens = new Tokens();
+        ovoAccounts = [];
 
-        var request = new LoginRequest
+        try
         {
-            Username = username, Password = password
-        };
+            _loginRequest = new LoginRequest
+            {
+                Username = username,
+                Password = password
+            };
 
-        if (DoLogin(request, out tokens))
+            if (DoLogin(_loginRequest))
+            {
+                DoGetAccessToken();
+                ovoAccounts = DoGetOvoAccounts();
+                result = true;
+            }
+        }
+        catch (Exception exception)
         {
-            tokens = DoGetAccessToken(tokens);
-            ovoAccounts = DoGetOvoAccounts(tokens);
-            result = true;
+            _logger?.WriteLine(exception.ToString());
         }
 
         return result;
     }
 
-    private bool DoLogin(LoginRequest loginRequest, out Tokens tokens)
+    private bool DoLogin(LoginRequest loginRequest)
     {
-        bool result;
-        tokens = new Tokens();
+        var result = false;
 
-        var uri = new Uri(_configuration["LoginUri"]!);
-        var request = new HttpRequestMessage(HttpMethod.Post, uri);
-        var requestContent = JsonSerializer.Serialize(loginRequest, _options);
-        request.Content = new StringContent(requestContent, Encoding.ASCII, "application/json");
-
-        Logger.WriteLine($"Logging in as {loginRequest.Username}");
-
-        var response = _httpClient1.SendAsync(request).Result;
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var responseContent = response.Content.ReadAsStringAsync().Result;
-            if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
-            {
-                Logger.DumpJson("Login-Response", responseContent);
-            }
-            var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, _options);
-            if (loginResponse != null)
-            {
-                tokens.UserGuid = loginResponse.UserId;
-                Debug.WriteLine($"UserName: {loginResponse.UserName}");
-                Debug.WriteLine($"UserGuid: {loginResponse.UserId}");
-            }
+            var uri = new Uri(_configuration["LoginUri"]!);
+            var request = new HttpRequestMessage(HttpMethod.Post, uri);
+            var requestContent = JsonSerializer.Serialize(loginRequest, JsonSerializerOptions);
+            request.Content = new StringContent(requestContent, Encoding.ASCII, "application/json");
 
-            var cookies = new List<Cookie>();
-            if (response.Headers.TryGetValues("Set-Cookie", out var cookieHeaders))
+            _logger?.WriteLine($"Calling API endpoint at Uri: {uri} to Log in as '{loginRequest.Username}'");
+
+            var response = _httpClient1.SendAsync(request).Result;
+            if (response.IsSuccessStatusCode)
             {
-                foreach (var header in cookieHeaders)
+                var responseContent = response.Content.ReadAsStringAsync().Result;
+                if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    var cookieContainer = new CookieContainer();
-                    cookieContainer.SetCookies(uri, header);
+                    _logger?.DumpJson("Login-Response", responseContent);
+                }
 
-                    foreach (Cookie cookie in cookieContainer.GetCookies(uri))
+                var loginResponse = JsonSerializer.Deserialize<LoginResponse>(responseContent, JsonSerializerOptions);
+                if (loginResponse != null)
+                {
+                    Tokens.UserGuid = loginResponse.UserId;
+                    Debug.WriteLine($"UserName: {loginResponse.UserName}");
+                    Debug.WriteLine($"UserGuid: {loginResponse.UserId}");
+                }
+
+                var cookies = new List<Cookie>();
+                if (response.Headers.TryGetValues("Set-Cookie", out var cookieHeaders))
+                {
+                    foreach (var header in cookieHeaders)
                     {
-                        cookies.Add(cookie);
+                        var cookieContainer = new CookieContainer();
+                        cookieContainer.SetCookies(uri, header);
+
+                        foreach (Cookie cookie in cookieContainer.GetCookies(uri))
+                        {
+                            cookies.Add(cookie);
+                        }
+                    }
+                }
+
+                if (cookies.Count > 0)
+                {
+                    var cookie = cookies.FirstOrDefault(c => c.Name == "restricted_refresh_token");
+                    if (cookie != null)
+                    {
+                        Tokens.RefreshToken.Jwt = cookie.Value;
+                        _logger?.DumpJson("Refresh-Token", Tokens.RefreshToken.ToString());
+
+                        result = true;
                     }
                 }
             }
-
-            tokens.RefreshToken = cookies[0].Value;
-            result = true;
+            else
+            {
+                _logger?.WriteLine($"{response.StatusCode} {response.ReasonPhrase}");
+                Debugger.Break();
+            }
         }
-        else
+        catch (Exception exception)
         {
-            result = false;
+            _logger?.WriteLine(exception.ToString());
+            Debugger.Break();
         }
-        
+
         return result;
     }
 
-    private Tokens DoGetAccessToken(Tokens tokens)
+    private void CheckTokens()
     {
-        var uri = new Uri(_configuration["TokenUri"]!);
-        var request = new HttpRequestMessage(HttpMethod.Get, uri);
-        request.Headers.Add("restricted_refresh_token", tokens.RefreshToken);
-
-        if (string.IsNullOrEmpty(tokens.AccessToken))
+        if (Tokens.AccessToken.HasExpired)
         {
-            Logger.WriteLine("Obtaining access token");
+            Debug.WriteLine($"Access token expired at {Tokens.AccessToken.ExpiresAtTime:HH:mm:ss}");
+        }
+        if (Tokens.RefreshToken.HasExpired)
+        {
+            _logger?.WriteLine($"Refresh token expired at {Tokens.RefreshToken.ExpiresAtTime:HH:mm:ss}");
+        }
+
+        if (Tokens.RefreshToken.HasExpired)
+        {
+            if (_loginRequest != null
+                && DoLogin(_loginRequest))
+            {
+                DoGetAccessToken();
+            }
         }
         else
         {
-            Logger.WriteLine("Refreshing access token");
-        }
-
-        var response = _httpClient1.SendAsync(request).Result;
-        if (response.IsSuccessStatusCode)
-        {
-            var responseContent = response.Content.ReadAsStringAsync().Result;
-            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, _options);
-
-            if (tokenResponse != null)
+            if (Tokens.AccessToken.HasExpired)
             {
-                tokens.RefreshTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.RefreshExpiresIn);
-                tokens.AccessToken = tokenResponse.AccessToken.Value;
-                tokens.AccessTokenExpiryTime = DateTime.Now.AddSeconds(tokenResponse.ExpiresIn);
+                DoGetAccessToken();
             }
         }
 
-        return tokens;
+        // Tokens are both valid
     }
 
-    private List<OvoAccount> DoGetOvoAccounts(Tokens tokens)
+    private void DoGetAccessToken()
     {
-        var result = new List<OvoAccount>();
-
-        var request = new HttpRequestMessage(HttpMethod.Post, _configuration["AccountsUri"]!);
-        request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
-
-        var graphQl = "{\r\n \"operationName\": \"Bootstrap\",\r\n \"variables\": {\r\n \"customerId\": \"[[CustomerGuid]]\"\r\n },\r\n \"query\": \"query Bootstrap($customerId: ID!) {\\n customer_nextV1(id: $customerId) {\\n id\\n customerAccountRelationships {\\n edges {\\n node {\\n account {\\n accountNo\\n id\\n accountSupplyPoints {\\n ...AccountSupplyPoint\\n }\\n }\\n }\\n }\\n }\\n }\\n}\\n\\nfragment AccountSupplyPoint on AccountSupplyPoint {\\n startDate\\n supplyPoint {\\n fuelType\\n }\\n}\"\r\n}";
-        graphQl = graphQl.Replace("[[CustomerGuid]]", tokens.UserGuid);
-        var content = new StringContent(graphQl, null, "application/json");
-        request.Content = content;
-
-        Logger.WriteLine("Obtaining account details");
-
-        var response = _httpClient2.SendAsync(request).Result;
-        response.EnsureSuccessStatusCode();
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var responseContent = response.Content.ReadAsStringAsync().Result;
-            if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
-            {
-                Logger.DumpJson("Accounts-Response",  JsonHelper.Prettify(responseContent));
-            }
-            var accountsResponse = JsonSerializer.Deserialize<AccountsResponse>(responseContent, _options);
-            if (accountsResponse != null)
-            {
-                var edges = accountsResponse.Data.CustomerNextV1.CustomerAccountRelationships.Edges.ToList();
-                foreach (var edge in edges)
-                {
-                    var ovoAccount = new OvoAccount();
-                    ovoAccount.Id = edge.Node.Account.AccountNo;
-                    var electric = edge.Node.Account.AccountSupplyPoints.Any(s => s.SupplyPoint.FuelType.Equals("ELECTRICITY"));
-                    ovoAccount.HasElectric = electric;
+            var uri = new Uri(_configuration["TokenUri"]!);
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            request.Headers.Add("restricted_refresh_token", Tokens.RefreshToken.Jwt);
 
-                    var gas = edge.Node.Account.AccountSupplyPoints.Any(s => s.SupplyPoint.FuelType.Equals("GAS"));
-                    ovoAccount.HasElectric = gas;
-                    result.Add(ovoAccount);
+            var response = _httpClient1.SendAsync(request).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = response.Content.ReadAsStringAsync().Result;
+                var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, JsonSerializerOptions);
+
+                if (tokenResponse != null)
+                {
+                    if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
+                    {
+                        _logger?.DumpJson("DoGetAccessToken-Response", responseContent);
+                    }
+
+                    Tokens.AccessToken.Jwt = tokenResponse.AccessToken.Value;
+
+                    _logger?.DumpJson("Access-Token", Tokens.AccessToken.ToString());
+
+                    Debug.WriteLine($"Current Time             {DateTime.Now:dd-MMM-yyyy HH:mm:ss}");
+                    Debug.WriteLine($"Access  Token Expires at {Tokens.AccessToken.ExpiresAtTime:dd-MMM-yyyy HH:mm:ss}");
+                    Debug.WriteLine($"Refresh Token Expires at {Tokens.RefreshToken.ExpiresAtTime:dd-MMM-yyyy HH:mm:ss}");
                 }
             }
+            else
+            {
+                _logger?.WriteLine($"{response.StatusCode} {response.ReasonPhrase}");
+                Debugger.Break();
+            }
+        }
+        catch (Exception exception)
+        {
+            _logger?.WriteLine(exception.ToString());
+            Debugger.Break();
+        }
+    }
+
+    private List<Models.Account> DoGetOvoAccounts()
+    {
+        var result = new List<Models.Account>();
+
+        try
+        {
+            var uri = new Uri(_configuration["AccountsUri"]!);
+            var request = new HttpRequestMessage(HttpMethod.Post, uri);
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
+
+            var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Accounts.query").Split(Environment.NewLine));
+            var graphQl = ResourceHelper.GetStringResource("GraphQL.Accounts.json");
+            graphQl = graphQl.Replace("[[customerGuid]]", Tokens.UserGuid).Replace("[[query]]", query);
+
+            var content = new StringContent(graphQl, null, "application/json");
+            request.Content = content;
+
+            _logger?.WriteLine($"Calling API endpoint at Uri: {uri} to obtain account details");
+
+            var response = _httpClient2.SendAsync(request).Result;
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = response.Content.ReadAsStringAsync().Result;
+                if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
+                {
+                    _logger?.DumpJson("Accounts-Response", JsonHelper.Prettify(responseContent));
+                }
+                var accountsResponse = JsonSerializer.Deserialize<UsageResponse>(responseContent, JsonSerializerOptions);
+                if (accountsResponse != null)
+                {
+                    var accounts = accountsResponse.Data.Customer.Relationships.Accounts.ToList();
+                    foreach (var account in accounts)
+                    {
+                        var ovoAccount = new Models.Account
+                        {
+                            Id = account.Details.AccountDetail.Id
+                        };
+
+                        var electric = account.Details.AccountDetail.SupplyPoints
+                            .Where(s => s.SupplyPointDetail.FuelType.Equals(Constants.FuelTypeElectricity))
+                            .ToList();
+                        if (electric.Any())
+                        {
+                            ovoAccount.HasElectric = true;
+                            ovoAccount.ElectricStartDate = electric[0].StartDate;
+                        }
+
+                        var gas = account.Details.AccountDetail.SupplyPoints
+                            .Where(s => s.SupplyPointDetail.FuelType.Equals(Constants.FuelTypeGas))
+                            .ToList();
+                        if (gas.Any())
+                        {
+                            ovoAccount.HasGas = true;
+                            ovoAccount.GasStartDate = gas[0].StartDate;
+                        }
+                        result.Add(ovoAccount);
+                    }
+                }
+            }
+            else
+            {
+                _logger?.WriteLine($"{response.StatusCode} {response.ReasonPhrase}");
+                Debugger.Break();
+            }
+        }
+        catch (Exception exception)
+        {
+            _logger?.WriteLine(exception.ToString());
+            Debugger.Break();
         }
 
         return result;
     }
 
-    public MonthlyResponse GetMonthlyUsage(Tokens tokens, string accountId, int year)
+    public MonthlyResponse ObtainMonthlyUsage(string accountId, int year)
     {
         var result = new MonthlyResponse();
 
         try
         {
-            if (DateTime.Now > tokens.AccessTokenExpiryTime)
-            {
-                tokens = DoGetAccessToken(tokens);
-            }
+            CheckTokens();
 
             var uri = string.Format(_configuration["MonthlyUri"]!, accountId, year);
-            Logger.WriteLine($"Uri: {uri}");
-
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
+
+            _logger?.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -208,35 +320,38 @@ public class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson($"{nameof(GetMonthlyUsage)}-{year}", content);
+                    _logger?.DumpJson($"{nameof(ObtainMonthlyUsage)}-{year}", content);
                 }
-                result = JsonSerializer.Deserialize<MonthlyResponse>(content, _options);
+                result = JsonSerializer.Deserialize<MonthlyResponse>(content, JsonSerializerOptions);
+            }
+            else
+            {
+                _logger?.WriteLine($"{response.StatusCode} {response.ReasonPhrase}");
+                Debugger.Break();
             }
         }
         catch (Exception exception)
         {
-            Logger.WriteLine(exception.ToString());
+            _logger?.WriteLine(exception.ToString());
+            Debugger.Break();
         }
 
         return result!;
     }
 
-    public DailyResponse GetDailyUsage(Tokens tokens, string accountId, int year, int month)
+    public DailyResponse ObtainDailyUsage(string accountId, int year, int month)
     {
         var result = new DailyResponse();
 
         try
         {
-            if (DateTime.Now > tokens.AccessTokenExpiryTime)
-            {
-                tokens = DoGetAccessToken(tokens);
-            }
+            CheckTokens();
 
             var uri = string.Format(_configuration["DailyUri"]!, accountId, $"{year}-{month:D2}");
-            Logger.WriteLine($"Uri: {uri}");
+            _logger?.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
 
             var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -244,35 +359,38 @@ public class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson($"{nameof(GetDailyUsage)}-{year}-{month:D2}", content);
+                    _logger?.DumpJson($"{nameof(ObtainDailyUsage)}-{year}-{month:D2}", content);
                 }
-                result = JsonSerializer.Deserialize<DailyResponse>(content, _options);
+                result = JsonSerializer.Deserialize<DailyResponse>(content, JsonSerializerOptions);
+            }
+            else
+            {
+                _logger?.WriteLine($"{response.StatusCode} {response.ReasonPhrase}");
+                Debugger.Break();
             }
         }
         catch (Exception exception)
         {
-            Logger.WriteLine(exception.ToString());
+            _logger?.WriteLine(exception.ToString());
+            Debugger.Break();
         }
 
         return result;
     }
 
-    public HalfHourlyResponse GetHalfHourlyUsage(Tokens tokens, string accountId, int year, int month, int day)
+    public HalfHourlyResponse ObtainHalfHourlyUsage(string accountId, int year, int month, int day)
     {
         var result = new HalfHourlyResponse();
 
         try
         {
-            if (DateTime.Now > tokens.AccessTokenExpiryTime)
-            {
-                tokens = DoGetAccessToken(tokens);
-            }
+            CheckTokens();
 
             var uri = string.Format(_configuration["HalfHourlyUri"]!, accountId, $"{year}-{month:D2}-{day:D2}");
-            Logger.WriteLine($"Uri: {uri}");
+            _logger?.WriteLine($"Calling API endpoint at Uri: {uri}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Add("Authorization", $"Bearer {tokens.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
 
             var response = _httpClient3.SendAsync(request).Result;
             if (response.IsSuccessStatusCode)
@@ -280,14 +398,225 @@ public class HttpHelper
                 var content = response.Content.ReadAsStringAsync().Result;
                 if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
                 {
-                    Logger.DumpJson($"{nameof(GetHalfHourlyUsage)}-{year}-{month:D2}-{day:D2}", content);
+                    _logger?.DumpJson($"{nameof(ObtainHalfHourlyUsage)}-{year}-{month:D2}-{day:D2}", content);
                 }
-                result = JsonSerializer.Deserialize<HalfHourlyResponse>(content, _options);
+                result = JsonSerializer.Deserialize<HalfHourlyResponse>(content, JsonSerializerOptions);
+            }
+            else
+            {
+                _logger?.WriteLine($"{response.StatusCode} {response.ReasonPhrase}");
+                Debugger.Break();
             }
         }
         catch (Exception exception)
         {
-            Logger.WriteLine(exception.ToString());
+            _logger?.WriteLine(exception.ToString());
+            Debugger.Break();
+        }
+
+        return result;
+    }
+
+    public List<Models.MySupplyPoint> ObtainMeterReadings(string accountId)
+    {
+        List<Models.MySupplyPoint> result = [];
+
+        try
+        {
+            CheckTokens();
+
+            var query = string.Join(@"\n", ResourceHelper.GetStringResource("GraphQL.Readings.query").Split(Environment.NewLine));
+            var graphQl = ResourceHelper.GetStringResource("GraphQL.Readings.json");
+            graphQl = graphQl.Replace("[[accountId]]", accountId).Replace("[[query]]", query);
+
+            var uri = new Uri(_configuration["ReadingsUri"]!);
+            var request = new HttpRequestMessage(HttpMethod.Post, uri);
+            request.Headers.Add("Authorization", $"Bearer {Tokens.AccessToken.Jwt}");
+
+            var content = new StringContent(graphQl, null, "application/json");
+            request.Content = content;
+
+            _logger?.WriteLine($"Calling API endpoint at Uri: {uri} to obtain meter readings");
+
+            var response = _httpClient2.SendAsync(request).Result;
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = response.Content.ReadAsStringAsync().Result;
+
+                if (ConfigHelper.GetBoolean(_configuration, "DumpData", false))
+                {
+                    _logger?.DumpJson("Readings-Response", JsonHelper.Prettify(responseContent));
+                }
+                var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
+                if (readingsResponse != null)
+                {
+                    Debug.WriteLine(readingsResponse.Data.Account.Id);
+
+                    var electric = readingsResponse.Data.Account.MeterSupplyPoints
+                        .Where(s => s.SupplyPoint.FuelType.Equals(Constants.FuelTypeElectricity))
+                        .ToList();
+                    if (electric.Any())
+                    {
+                        var ovoSupplyPoint = new Models.MySupplyPoint
+                        {
+                            Sprn = electric[0].SupplyPoint.Sprn,
+                            FuelType = Constants.FuelTypeElectricity
+                        };
+
+                        foreach (var accountSupplyPoint in electric)
+                        {
+                            foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
+                            {
+                                var ovoMeter = new SqLiteMeter
+                                {
+                                    SerialNumber = meter.MeterSerialNumber,
+                                    FuelType = meter.Type,
+                                    Status = meter.Status
+                                };
+
+                                foreach (var detail in meter.MeterRegisters)
+                                {
+                                    var ovoMeterRegister = new SqLiteRegister
+                                    {
+                                        TimingCategory = detail.TimingCategory,
+                                        UnitOfMeasurement = detail.UnitMeasurement,
+                                        Id = detail.RegisterId
+                                    };
+
+                                    if (DateTime.TryParseExact(detail.RegisterStartDate,
+                                            Constants.ZuluDateTimeFormat,
+                                            CultureInfo.InvariantCulture,
+                                            DateTimeStyles.AssumeUniversal,
+                                            out var startDate))
+                                    {
+                                        ovoMeterRegister.StartDate = DateHelper.IsoDateOnly(startDate);
+                                    }
+
+                                    if (DateTime.TryParseExact(detail.RegisterEndDate,
+                                            Constants.ZuluDateTimeFormat,
+                                            CultureInfo.InvariantCulture,
+                                            DateTimeStyles.AssumeUniversal,
+                                            out var endDate))
+                                    {
+                                        ovoMeterRegister.EndDate = DateHelper.IsoDateOnly(endDate);
+                                    }
+
+                                    ovoMeter.Registers.Add(ovoMeterRegister);
+                                }
+
+                                ovoSupplyPoint.Meters.Add(ovoMeter);
+                            }
+
+                            foreach (var edge in accountSupplyPoint.Readings.Edges)
+                            {
+                                var node = edge.MeterNode.MeterReadingData;
+                                var ovoMeterReading = new SqLiteReading
+                                {
+                                    FuelType = node.Type,
+                                    Date = node.Date,
+                                    LifeCycle = node.Lifecycle,
+                                    Source = node.Source,
+                                    MeterSerialNumber = node.MeterSerialNumber
+                                };
+
+                                if (node.ElectricMeterValues.Count > 0)
+                                {
+                                    ovoMeterReading.TimingCategory = node.ElectricMeterValues[0].TimingCategory;
+                                    ovoMeterReading.RegisterId = node.ElectricMeterValues[0].RegisterId;
+                                    ovoMeterReading.Value = node.ElectricMeterValues[0].Value;
+                                }
+
+                                ovoSupplyPoint.Readings.Add(ovoMeterReading);
+                            }
+
+                            result.Add(ovoSupplyPoint);
+                        }
+                    }
+
+                    var gas = readingsResponse.Data.Account.MeterSupplyPoints
+                        .Where(s => s.SupplyPoint.FuelType.Equals(Constants.FuelTypeGas))
+                        .ToList();
+                    if (gas.Any())
+                    {
+                        var ovoSupplyPoint = new Models.MySupplyPoint
+                        {
+                            Sprn = gas[0].SupplyPoint.Sprn,
+                            FuelType = Constants.FuelTypeGas
+                        };
+
+                        foreach (var accountSupplyPoint in gas)
+                        {
+                            foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
+                            {
+                                var ovoMeter = new SqLiteMeter
+                                {
+                                    SerialNumber = meter.MeterSerialNumber,
+                                    FuelType = meter.Type,
+                                    Status = meter.Status
+                                };
+
+                                foreach (var detail in meter.MeterRegisters)
+                                {
+                                    var ovoMeterRegister = new SqLiteRegister
+                                    {
+                                        TimingCategory = detail.TimingCategory,
+                                        UnitOfMeasurement = detail.UnitMeasurement,
+                                        Id = detail.RegisterId
+                                    };
+
+                                    if (DateTime.TryParseExact(detail.RegisterStartDate,
+                                            Constants.ZuluDateTimeFormat,
+                                            CultureInfo.InvariantCulture,
+                                            DateTimeStyles.AssumeUniversal, out var startDate))
+                                    {
+                                        ovoMeterRegister.StartDate = DateHelper.IsoDateOnly(startDate);
+                                    }
+                                    if (DateTime.TryParseExact(detail.RegisterEndDate,
+                                            Constants.ZuluDateTimeFormat,
+                                            CultureInfo.InvariantCulture,
+                                            DateTimeStyles.AssumeUniversal, out var endDate))
+                                    {
+                                        ovoMeterRegister.EndDate = DateHelper.IsoDateOnly(endDate);
+                                    }
+
+                                    ovoMeter.Registers.Add(ovoMeterRegister);
+                                }
+
+                                ovoSupplyPoint.Meters.Add(ovoMeter);
+                            }
+
+                            foreach (var edge in accountSupplyPoint.Readings.Edges)
+                            {
+                                var node = edge.MeterNode.MeterReadingData;
+                                var ovoMeterReading = new SqLiteReading
+                                {
+                                    FuelType = node.Type,
+                                    Date = node.Date,
+                                    LifeCycle = node.Lifecycle,
+                                    Source = node.Source,
+                                    MeterSerialNumber = node.MeterSerialNumber,
+                                    Value = node.GasMeterValue
+                                };
+
+                                ovoSupplyPoint.Readings.Add(ovoMeterReading);
+                            }
+                        }
+
+                        result.Add(ovoSupplyPoint);
+                    }
+                }
+            }
+            else
+            {
+                _logger?.WriteLine($"{response.StatusCode} {response.ReasonPhrase}");
+                Debugger.Break();
+            }
+        }
+        catch (Exception exception)
+        {
+            _logger?.WriteLine(exception.ToString());
+            Debugger.Break();
         }
 
         return result;

@@ -4,21 +4,30 @@ using System.IO;
 
 namespace OvoData.Helpers;
 
-public static class Logger
+public class Logger
 {
-    public static void WriteLine(string message)
+    private readonly string _suffix;
+
+    public Logger(ref int logNumber)
+    {
+        logNumber++;
+
+        _suffix = $"{Environment.ProcessId:X6}-{logNumber:000}";
+    }
+
+    public void WriteLine(string message)
     {
         if (!string.IsNullOrEmpty(message))
         {
             using (var streamWriter = File.AppendText(GetFileName()))
             {
-                streamWriter.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}");
+                streamWriter.WriteLine($"{DateHelper.LogEntryTimestamp()} - {message}");
                 Debug.WriteLine(message);
             }
         }
     }
 
-    private static string GetFileName()
+    private string GetFileName()
     {
         var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Constants.ApplicationName);
 
@@ -27,12 +36,12 @@ public static class Logger
             Directory.CreateDirectory(Path.Combine(folder, "Logs"));
         }
 
-        var fileName = Path.Combine(folder, "Logs", $"{DateTime.Now:yyyy-MM-dd}.log");
+        var fileName = Path.Combine(folder, "Logs", $"{DateHelper.LogFileSuffix(_suffix)}.log");
 
         return fileName;
     }
 
-    public static void DumpJson(string responseType, string json)
+    public void DumpJson(string responseType, string json)
     {
         var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Constants.ApplicationName);
 
@@ -41,7 +50,7 @@ public static class Logger
             Directory.CreateDirectory(Path.Combine(folder, "Dump"));
         }
 
-        var fileName = Path.Combine(folder, "Dump", $"{DateTime.Now:yyyy-MM-dd HH-mm-ss.fff} {responseType}.json");
+        var fileName = Path.Combine(folder, "Dump", $"{DateHelper.LogFileSuffix()} {responseType}.json");
 
         File.WriteAllText(fileName, json);
     }

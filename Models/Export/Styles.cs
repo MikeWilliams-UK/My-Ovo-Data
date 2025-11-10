@@ -16,6 +16,12 @@ public static class Styles
             CustomNumberFormat = "0.0000\"p\""
         };
 
+    public static ColumnStyle GeneralNumber =>
+        new()
+        {
+            CustomNumberFormat = "#,##0.0##,"
+        };
+
     public static ColumnStyle Kwh =>
         new()
         {
