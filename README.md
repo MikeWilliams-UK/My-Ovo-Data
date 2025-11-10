@@ -19,13 +19,13 @@ Enter your details, then click on the Login button.
 
 Once logged in you will be able to select which of your accounts that you wish to obtain data for.
 
-The screen will also show the date range for which data is stored in the SQLite database.
+The screen will also show the date ranges for which data is stored in the SQLite database.
 
 <img src="Assets/Your OVO SMART meter data Logged In.png">
 
-The first time that you use the application on an account it is recomended to select "All Time" then click on the "Read" button.
+The first time that you use the application on an account it is recomended to select "All Time" then click on the "Get Usage" then Get Readings buttons.
 
-On subsequent occasions you will need to select the appropriate time period,  then click on the "Read" button.
+On subsequent occasions you will need to select the appropriate time period,  then click on the "Get Useage" and/or "Get Readings" buttons.
 
 To Export your data in either CSV or Excel format use the "Export" button.
 
