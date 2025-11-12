@@ -25,15 +25,7 @@ https://codebeautify.org/jsonviewer
 GraphQL
 https://jsonformatter.org/graphql-formatter
 
-Added .gitattributes
-*.txt text eol=crlf
-
-# Declare files that will always have CRLF line endings on checkout.
-*.sln text eol=crlf
-
-# Denote all files that are truly binary and should not be modified.
-*.png binary
-*.jpg binary
+Added .gitattributes (used by other project)
 
 Get Git to re-normalize all files
 git ls-files --eol
