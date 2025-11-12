@@ -24,3 +24,8 @@ https://codebeautify.org/jsonviewer
 
 GraphQL
 https://jsonformatter.org/graphql-formatter
+
+Added .gitattributes (used by other project)
+
+git ls-files --eol | findstr w/lf
+git ls-files --eol | findstr w/mixed
