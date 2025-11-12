@@ -27,7 +27,5 @@ https://jsonformatter.org/graphql-formatter
 
 Added .gitattributes (used by other project)
 
-Get Git to re-normalize all files
-git ls-files --eol
-git add --renormalize .
-git status
+git ls-files --eol | findstr w/lf
+git ls-files --eol | findstr w/mixed
