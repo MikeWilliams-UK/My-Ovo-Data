@@ -32,9 +32,15 @@ public partial class SqLiteHelper
         }
 
         // Add readings tables if required
-        if (!TableExists("SupplyPoints"))
+        if (!ObjectExists("table", "SupplyPoints"))
         {
             ApplyV105Changes();
+        }
+
+        // Add readings tables if required
+        if (!ObjectExists("index", "Idx_MeterRegisters_2"))
+        {
+            ApplyV107Changes();
         }
     }
 
@@ -46,27 +52,38 @@ public partial class SqLiteHelper
 
     private void CreateInitialTables()
     {
-        var tables = ResourceHelper.GetStringResource("SqLite.Initial-Database.sql").Split(Environment.NewLine);
+        var statements = ResourceHelper.GetStringResource("SqLite.Initial-Database.sql")
+            .Split(Environment.NewLine);
 
-        ExecuteScripts(tables);
+        ExecuteStatements(statements);
     }
 
     private void ApplyV105Changes()
     {
-        var tables = ResourceHelper.GetStringResource("SqLite.V1.0.5-Changes.sql").Split(Environment.NewLine);
+        var statements = ResourceHelper.GetStringResource("SqLite.V1.0.5-Changes.sql")
+            .Split(Environment.NewLine);
 
-        ExecuteScripts(tables);
+        ExecuteStatements(statements);
     }
 
-    private void ExecuteScripts(string[] tables)
+    private void ApplyV107Changes()
+    {
+        var statements = ResourceHelper.GetStringResource("SqLite.V1.0.7-Changes.sql")
+            .Split(Environment.NewLine);
+
+        ExecuteStatements(statements);
+    }
+
+
+    private void ExecuteStatements(string[] statements)
     {
         using (var connection = GetConnection())
         {
-            foreach (var table in tables)
+            foreach (var statement in statements)
             {
-                if (!string.IsNullOrEmpty(table) && !table.StartsWith('-'))
+                if (!string.IsNullOrEmpty(statement) && !statement.StartsWith('-'))
                 {
-                    var command = new SQLiteCommand(table, connection);
+                    var command = new SQLiteCommand(statement, connection);
                     command.ExecuteNonQuery();
                 }
             }
@@ -216,7 +233,7 @@ public partial class SqLiteHelper
         }
     }
 
-    private bool TableExists(string tableName)
+    private bool ObjectExists(string objectType, string objectName)
     {
         bool result = false;
 
@@ -226,7 +243,7 @@ public partial class SqLiteHelper
 
             stringBuilder.AppendLine("SELECT name");
             stringBuilder.AppendLine("FROM sqlite_master");
-            stringBuilder.AppendLine($"WHERE type='table' AND name='{tableName}'");
+            stringBuilder.AppendLine($"WHERE type='{objectType}' AND name='{objectName}'");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             var reader = command.ExecuteReader();

@@ -360,7 +360,7 @@ namespace OvoData.Forms
                     Value = reading.Value,
                     UnitOfMeasure = data!
                 };
-                result.Add($"{reading.Date}-{reading.FuelType}", readingsData);
+                result.Add($"{reading.Date}-{reading.FuelType}-{reading.TimingCategory}", readingsData);
             }
 
             return result;
