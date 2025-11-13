@@ -52,8 +52,8 @@ public partial class SqLiteHelper
             stringBuilder.AppendLine("INSERT INTO MeterRegisters");
             stringBuilder.AppendLine("VALUES");
             stringBuilder.AppendLine($"('{register.StartDate}', '{register.EndDate}', '{fuelType}',");
-            stringBuilder.AppendLine($" '{register.Id}','{register.TimingCategory}', '{register.UnitOfMeasurement}',");
-            stringBuilder.AppendLine($" '{register.MeterSerialNumber}')");
+            stringBuilder.AppendLine($" '{register.MeterSerialNumber}', '{register.Id}',");
+            stringBuilder.AppendLine($" '{register.TimingCategory}', '{register.UnitOfMeasurement}')");
             stringBuilder.AppendLine("ON CONFLICT (StartDate, MeterSerialNumber, Id)");
             stringBuilder.AppendLine("DO UPDATE SET");
             stringBuilder.AppendLine("  StartDate = excluded.StartDate, EndDate = excluded.EndDate, FuelType = excluded.FuelType,");
@@ -61,7 +61,6 @@ public partial class SqLiteHelper
             stringBuilder.AppendLine("  MeterSerialNumber = excluded.MeterSerialNumber");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
-            Debug.WriteLine(command.CommandText);
             command.ExecuteNonQuery();
         }
     }
@@ -77,7 +76,7 @@ public partial class SqLiteHelper
             stringBuilder.AppendLine($"('{reading.Date}', '{reading.MeterSerialNumber}', '{fuelType}',");
             stringBuilder.AppendLine($" '{reading.LifeCycle}','{reading.RegisterId}', '{reading.Source}',");
             stringBuilder.AppendLine($" '{reading.TimingCategory}','{reading.FuelType}', '{reading.Value}')");
-            stringBuilder.AppendLine("ON CONFLICT (Date, FuelType)");
+            stringBuilder.AppendLine("ON CONFLICT (Date, FuelType, RegisterId)");
             stringBuilder.AppendLine("DO UPDATE SET");
             stringBuilder.AppendLine("  Date = excluded.Date, FuelType = excluded.FuelType, MeterSerialNumber = excluded.MeterSerialNumber,");
             stringBuilder.AppendLine("  LifeCycle = excluded.LifeCycle, RegisterId = excluded.RegisterId, Source = excluded.Source,");

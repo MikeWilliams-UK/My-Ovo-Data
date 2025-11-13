@@ -449,9 +449,7 @@ public class HttpHelper
                     _logger?.DumpJson("Readings-Response", JsonHelper.Prettify(responseContent));
                 }
 
-                var customerReadings = ResourceHelper.GetStringResource("CustomerData.FireDog-MeterReadings.json");
-
-                var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(customerReadings, JsonSerializerOptions);
+                var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
                 if (readingsResponse != null)
                 {
                     Debug.WriteLine(readingsResponse.Data.Account.Id);
@@ -515,23 +513,22 @@ public class HttpHelper
                             foreach (var edge in accountSupplyPoint.Readings.Edges)
                             {
                                 var node = edge.MeterNode.MeterReadingData;
-                                var ovoMeterReading = new SqLiteReading
+                                foreach (ElectricMeterValue meterValue in node.ElectricMeterValues)
                                 {
-                                    FuelType = node.Type,
-                                    Date = node.Date,
-                                    LifeCycle = node.Lifecycle,
-                                    Source = node.Source,
-                                    MeterSerialNumber = node.MeterSerialNumber
-                                };
+                                    var ovoMeterReading = new SqLiteReading
+                                    {
+                                        FuelType = node.Type,
+                                        Date = node.Date,
+                                        LifeCycle = node.Lifecycle,
+                                        Source = node.Source,
+                                        MeterSerialNumber = node.MeterSerialNumber,
+                                        TimingCategory = meterValue.TimingCategory,
+                                        RegisterId = meterValue.RegisterId,
+                                        Value = meterValue.Value
+                                    };
 
-                                if (node.ElectricMeterValues.Count > 0)
-                                {
-                                    ovoMeterReading.TimingCategory = node.ElectricMeterValues[0].TimingCategory;
-                                    ovoMeterReading.RegisterId = node.ElectricMeterValues[0].RegisterId;
-                                    ovoMeterReading.Value = node.ElectricMeterValues[0].Value;
+                                    ovoSupplyPoint.Readings.Add(ovoMeterReading);
                                 }
-
-                                ovoSupplyPoint.Readings.Add(ovoMeterReading);
                             }
 
                             result.Add(ovoSupplyPoint);
