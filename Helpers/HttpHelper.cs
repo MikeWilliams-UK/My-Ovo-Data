@@ -510,18 +510,18 @@ public class HttpHelper
                                 ovoSupplyPoint.Meters.Add(ovoMeter);
                             }
 
-                            foreach (var edge in accountSupplyPoint.Readings.Edges)
+                            foreach (var meterReadingEdge in accountSupplyPoint.Readings.Edges)
                             {
-                                var node = edge.MeterNode.MeterReadingData;
-                                foreach (ElectricMeterValue meterValue in node.ElectricMeterValues)
+                                var meterReadingData = meterReadingEdge.MeterNode.MeterReadingData;
+                                foreach (ElectricMeterValue meterValue in meterReadingData.ElectricMeterValues)
                                 {
                                     var ovoMeterReading = new SqLiteReading
                                     {
-                                        FuelType = node.Type,
-                                        Date = node.Date,
-                                        LifeCycle = node.Lifecycle,
-                                        Source = node.Source,
-                                        MeterSerialNumber = node.MeterSerialNumber,
+                                        FuelType = meterReadingData.Type,
+                                        Date = meterReadingData.Date,
+                                        LifeCycle = meterReadingData.Lifecycle,
+                                        Source = meterReadingData.Source,
+                                        MeterSerialNumber = meterReadingData.MeterSerialNumber,
                                         TimingCategory = meterValue.TimingCategory,
                                         RegisterId = meterValue.RegisterId,
                                         Value = meterValue.Value
@@ -587,17 +587,17 @@ public class HttpHelper
                                 ovoSupplyPoint.Meters.Add(ovoMeter);
                             }
 
-                            foreach (var edge in accountSupplyPoint.Readings.Edges)
+                            foreach (var meterReadingEdge in accountSupplyPoint.Readings.Edges)
                             {
-                                var node = edge.MeterNode.MeterReadingData;
+                                var meterReadingData = meterReadingEdge.MeterNode.MeterReadingData;
                                 var ovoMeterReading = new SqLiteReading
                                 {
-                                    FuelType = node.Type,
-                                    Date = node.Date,
-                                    LifeCycle = node.Lifecycle,
-                                    Source = node.Source,
-                                    MeterSerialNumber = node.MeterSerialNumber,
-                                    Value = node.GasMeterValue
+                                    FuelType = meterReadingData.Type,
+                                    Date = meterReadingData.Date,
+                                    LifeCycle = meterReadingData.Lifecycle,
+                                    Source = meterReadingData.Source,
+                                    MeterSerialNumber = meterReadingData.MeterSerialNumber,
+                                    Value = meterReadingData.GasMeterValue
                                 };
 
                                 ovoSupplyPoint.Readings.Add(ovoMeterReading);
