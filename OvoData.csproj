@@ -8,8 +8,8 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
         <ApplicationIcon>Images\Ovo.ico</ApplicationIcon>
-        <AssemblyVersion>1.0.6</AssemblyVersion>
-        <FileVersion>1.0.6.6</FileVersion>
+        <AssemblyVersion>1.0.7</AssemblyVersion>
+        <FileVersion>1.0.7.7</FileVersion>
         <SelfContained>true</SelfContained>
     </PropertyGroup>
 
@@ -37,10 +37,12 @@
         <Content Include="Notes\General Notes.txt">
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </Content>
+        <EmbeddedResource Include="Resources\CustomerData\FireDog-MeterReadings.json" />
         <EmbeddedResource Include="Resources\GraphQL\Accounts.json" />
         <EmbeddedResource Include="Resources\GraphQL\Accounts.query" />
         <EmbeddedResource Include="Resources\GraphQL\Readings.json" />
         <EmbeddedResource Include="Resources\GraphQL\Readings.query" />
+        <EmbeddedResource Include="Resources\SqLite\V1.0.7-Changes.sql" />
         <EmbeddedResource Include="Resources\SqLite\V1.0.5-Changes.sql" />
         <EmbeddedResource Include="Resources\SqLite\Initial-Database.sql" />
         <Resource Include="Images\Ovo.ico" />

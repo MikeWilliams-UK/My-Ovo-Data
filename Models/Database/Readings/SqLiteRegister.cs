@@ -2,6 +2,7 @@
 
 public class SqLiteRegister
 {
+    public string MeterSerialNumber { get; set; } = string.Empty;
     public string Id { get; set; } = string.Empty;
 
     public string StartDate { get; set; } = string.Empty;

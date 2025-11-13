@@ -2,6 +2,7 @@
 using OvoData.Models.Database.Readings;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.Text;
 
 namespace OvoData.Helpers;
@@ -51,13 +52,16 @@ public partial class SqLiteHelper
             stringBuilder.AppendLine("INSERT INTO MeterRegisters");
             stringBuilder.AppendLine("VALUES");
             stringBuilder.AppendLine($"('{register.StartDate}', '{register.EndDate}', '{fuelType}',");
-            stringBuilder.AppendLine($" '{register.Id}','{register.TimingCategory}', '{register.UnitOfMeasurement}')");
-            stringBuilder.AppendLine("ON CONFLICT (StartDate)");
+            stringBuilder.AppendLine($" '{register.Id}','{register.TimingCategory}', '{register.UnitOfMeasurement}',");
+            stringBuilder.AppendLine($" '{register.MeterSerialNumber}')");
+            stringBuilder.AppendLine("ON CONFLICT (StartDate, MeterSerialNumber, Id)");
             stringBuilder.AppendLine("DO UPDATE SET");
             stringBuilder.AppendLine("  StartDate = excluded.StartDate, EndDate = excluded.EndDate, FuelType = excluded.FuelType,");
-            stringBuilder.AppendLine("  Id = excluded.Id, TimingCategory = excluded.TimingCategory, UnitOfMeasurement = excluded.UnitOfMeasurement");
+            stringBuilder.AppendLine("  Id = excluded.Id, TimingCategory = excluded.TimingCategory, UnitOfMeasurement = excluded.UnitOfMeasurement,");
+            stringBuilder.AppendLine("  MeterSerialNumber = excluded.MeterSerialNumber");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
+            Debug.WriteLine(command.CommandText);
             command.ExecuteNonQuery();
         }
     }

@@ -448,7 +448,10 @@ public class HttpHelper
                 {
                     _logger?.DumpJson("Readings-Response", JsonHelper.Prettify(responseContent));
                 }
-                var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
+
+                var customerReadings = ResourceHelper.GetStringResource("CustomerData.FireDog-MeterReadings.json");
+
+                var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(customerReadings, JsonSerializerOptions);
                 if (readingsResponse != null)
                 {
                     Debug.WriteLine(readingsResponse.Data.Account.Id);
@@ -481,7 +484,8 @@ public class HttpHelper
                                     {
                                         TimingCategory = detail.TimingCategory,
                                         UnitOfMeasurement = detail.UnitMeasurement,
-                                        Id = detail.RegisterId
+                                        Id = detail.RegisterId,
+                                        MeterSerialNumber = ovoMeter.SerialNumber
                                     };
 
                                     if (DateTime.TryParseExact(detail.RegisterStartDate,
