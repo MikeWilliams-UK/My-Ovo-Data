@@ -465,6 +465,23 @@ public class HttpHelper
                             FuelType = Constants.FuelTypeElectricity
                         };
 
+                        if (DateTime.TryParseExact(electric[0].StartDate,
+                                Constants.ShortDateFormat,
+                                CultureInfo.InvariantCulture,
+                                DateTimeStyles.AssumeUniversal, out var supplyStartDate))
+                        {
+                            ovoSupplyPoint.StartDate = supplyStartDate;
+                        }
+
+                        if (!string.IsNullOrEmpty(electric[0].Ending.Date) && DateTime.TryParseExact(
+                                electric[0].Ending.Date,
+                                Constants.ShortDateFormat,
+                                CultureInfo.InvariantCulture,
+                                DateTimeStyles.AssumeUniversal, out var supplyEndDate))
+                        {
+                            ovoSupplyPoint.EndDate = supplyEndDate;
+                        }
+
                         foreach (var accountSupplyPoint in electric)
                         {
                             foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
@@ -546,6 +563,23 @@ public class HttpHelper
                             FuelType = Constants.FuelTypeGas
                         };
 
+                        if (DateTime.TryParseExact(gas[0].StartDate,
+                                Constants.ShortDateFormat,
+                                CultureInfo.InvariantCulture,
+                                DateTimeStyles.AssumeUniversal, out var supplyStartDate))
+                        {
+                            ovoSupplyPoint.StartDate = supplyStartDate;
+                        }
+
+                        if (!string.IsNullOrEmpty(gas[0].Ending.Date) && DateTime.TryParseExact(
+                                electric[0].Ending.Date,
+                                Constants.ShortDateFormat,
+                                CultureInfo.InvariantCulture,
+                                DateTimeStyles.AssumeUniversal, out var supplyEndDate))
+                        {
+                            ovoSupplyPoint.EndDate = supplyEndDate;
+                        }
+
                         foreach (var accountSupplyPoint in gas)
                         {
                             foreach (var meter in accountSupplyPoint.SupplyPoint.MeterTechnicalDetails)
@@ -573,6 +607,7 @@ public class HttpHelper
                                     {
                                         ovoMeterRegister.StartDate = DateHelper.IsoDateOnly(startDate);
                                     }
+
                                     if (DateTime.TryParseExact(detail.RegisterEndDate,
                                             Constants.ZuluDateTimeFormat,
                                             CultureInfo.InvariantCulture,

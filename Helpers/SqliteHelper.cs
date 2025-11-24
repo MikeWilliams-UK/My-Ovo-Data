@@ -42,6 +42,12 @@ public partial class SqLiteHelper
         {
             ApplyV107Changes();
         }
+
+        // Add Start and End Date to SupplyPoints table
+        if (!ColumnExists("SupplyPoints", "StartDate"))
+        {
+            ApplyV108Changes();
+        }
     }
 
     private SQLiteConnection GetConnection()
@@ -74,6 +80,13 @@ public partial class SqLiteHelper
         ExecuteStatements(statements);
     }
 
+    private void ApplyV108Changes()
+    {
+        var statements = ResourceHelper.GetStringResource("SqLite.V1.0.8-Changes.sql")
+            .Split(Environment.NewLine);
+
+        ExecuteStatements(statements);
+    }
 
     private void ExecuteStatements(string[] statements)
     {
@@ -231,6 +244,33 @@ public partial class SqLiteHelper
                 result.Add(info);
             }
         }
+    }
+
+    private bool ColumnExists(string tableName, string columnName)
+    {
+        bool result = false;
+
+        using (var connection = GetConnection())
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("SELECT sql");
+            stringBuilder.AppendLine("FROM sqlite_master");
+            stringBuilder.AppendLine($"WHERE type='table' AND name='{tableName}'");
+
+            var command = new SQLiteCommand(stringBuilder.ToString(), connection);
+            var reader = command.ExecuteReader();
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    string sql = FieldAsString(reader["sql"]);
+                    result = sql.Contains(columnName);
+                }
+            }
+        }
+
+        return result;
     }
 
     private bool ObjectExists(string objectType, string objectName)
