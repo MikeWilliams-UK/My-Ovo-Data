@@ -8,7 +8,7 @@ public class ReadingsAccountSupplyPoint
     public string StartDate { get; set; } = string.Empty;
 
     [JsonPropertyName("end")]
-    public string End { get; set; } = string.Empty;
+    public ReadingsSupplyPointEnd Ending { get; set; } = new();
 
     [JsonPropertyName("supplyPoint")]
     public ReadingsSupplyPoint SupplyPoint { get; set; } = new();

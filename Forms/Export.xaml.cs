@@ -265,6 +265,7 @@ namespace OvoData.Forms
                             break;
                     }
                 }
+
                 using (var writer = spreadsheet.CreateWorksheetWriter<MonthlyChartData, MonthlyChartDataMap>("Monthly Chart", worksheetStyle))
                 {
                     writer.WriteRecords(chartData.Values.ToList());

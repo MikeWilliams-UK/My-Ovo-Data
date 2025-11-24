@@ -2,7 +2,6 @@
 using OvoData.Models.Database.Readings;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Diagnostics;
 using System.Text;
 
 namespace OvoData.Helpers;
@@ -17,9 +16,9 @@ public partial class SqLiteHelper
 
             stringBuilder.AppendLine("INSERT INTO SupplyPoints");
             stringBuilder.AppendLine("VALUES");
-            stringBuilder.AppendLine($"('{supplyPoint.Sprn}', '{supplyPoint.FuelType}')");
+            stringBuilder.AppendLine($"('{supplyPoint.Sprn}', '{supplyPoint.FuelType}', '{supplyPoint.StartDate:yyyy-MM-dd}', '{supplyPoint.EndDate:yyyy-MM-dd}')");
             stringBuilder.AppendLine("ON CONFLICT (Sprn)");
-            stringBuilder.AppendLine("DO UPDATE SET Sprn = excluded.Sprn, FuelType = excluded.FuelType");
+            stringBuilder.AppendLine("DO UPDATE SET Sprn = excluded.Sprn, FuelType = excluded.FuelType, StartDate = excluded.StartDate, EndDate = excluded.EndDate");
 
             var command = new SQLiteCommand(stringBuilder.ToString(), connection);
             command.ExecuteNonQuery();
