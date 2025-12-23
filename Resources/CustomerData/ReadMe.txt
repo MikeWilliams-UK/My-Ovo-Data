@@ -1,10 +1,10 @@
 ﻿Json files from customers go here
 
 Use in C# code like this ...
-var customerReadings = ResourceHelper.GetStringResource("CustomerData.Readings.json");
+in HttpHelper.cs
+	Function
+		public List<Models.MySupplyPoint> ObtainMeterReadings(string accountId)
 
-Then
-  change
-var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(responseContent, JsonSerializerOptions);
-  to
-var readingsResponse = JsonSerializer.Deserialize<ReadingsResponse>(customerReadings, JsonSerializerOptions);
+  Before change line 452
+  Add :-
+		responseContent =  = ResourceHelper.GetStringResource("CustomerData.Readings.json");

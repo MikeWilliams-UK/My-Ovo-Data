@@ -473,7 +473,10 @@ public class HttpHelper
                             ovoSupplyPoint.StartDate = supplyStartDate;
                         }
 
-                        if (!string.IsNullOrEmpty(electric[0].Ending.Date) && DateTime.TryParseExact(
+                        // If the supply point has an end date
+                        if (electric[0].Ending != null
+                            && !string.IsNullOrEmpty(electric[0].Ending.Date)
+                            && DateTime.TryParseExact(
                                 electric[0].Ending.Date,
                                 Constants.ShortDateFormat,
                                 CultureInfo.InvariantCulture,
